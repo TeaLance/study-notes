@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>人工智慧導論 · 互動式學習教材</title>
+<style>
+:root{
+  --ground:#0d1b2a; --ground-2:#0a1521; --surface:#14263c; --surface-2:#1b3050;
+  --line:#28456a; --text:#e8eef5; --muted:#9fb3cc; --faint:#6c84a3;
+  --accent:#45c8c0; --accent-dim:#2a7c77; --accent-2:#f0a830; --accent-2-dim:#9c6f23;
+  --good:#5fd08a; --bad:#ef6f6f;
+  --mono:"Cascadia Code","Cascadia Mono",ui-monospace,"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --sans:system-ui,"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans CJK TC",sans-serif;
+  --r:10px; --maxw:880px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ground);color:var(--text);font-family:var(--sans);
+  line-height:1.7;font-size:16px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:var(--accent)}
+
+/* layout */
+.shell{display:grid;grid-template-columns:268px minmax(0,1fr);min-height:100vh}
+nav.side{position:sticky;top:0;height:100vh;overflow-y:auto;
+  background:linear-gradient(180deg,var(--ground-2),var(--ground));
+  border-right:1px solid var(--line);padding:24px 18px 40px}
+main{min-width:0;padding:0 clamp(18px,5vw,64px) 120px}
+.wrap{max-width:var(--maxw);margin:0 auto}
+
+/* sidebar */
+.brand{font-family:var(--mono);font-size:.74rem;letter-spacing:.18em;color:var(--accent-2);text-transform:uppercase}
+.brand b{display:block;font-size:1.04rem;letter-spacing:.04em;color:var(--text);margin-top:6px;font-weight:700}
+.side ol{list-style:none;margin:8px 0 0;padding:0}
+.side .grp{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;color:var(--faint);text-transform:uppercase;margin:20px 0 6px;padding-left:10px}
+.side a.lnk{display:block;text-decoration:none;color:var(--muted);font-size:.9rem;
+  padding:6px 10px;border-left:2px solid transparent;border-radius:0 6px 6px 0;transition:.15s}
+.side a.lnk:hover{color:var(--text);background:rgba(69,200,192,.06)}
+.side a.lnk.active{color:var(--accent);border-left-color:var(--accent);background:rgba(69,200,192,.09)}
+.subjnav{margin:16px 0 4px;padding-bottom:14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.subjnav .stitle{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;color:var(--faint);text-transform:uppercase;margin:0 0 4px;padding-left:10px}
+.side a.lnk.subj-cur{color:var(--accent-2);border-left-color:var(--accent-2);background:rgba(240,168,48,.1);font-weight:700}
+
+/* hero */
+.hero{position:relative;padding:64px 0 30px;overflow:hidden}
+#trace-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.5}
+.hero .inner{position:relative;z-index:1}
+.eyebrow{font-family:var(--mono);font-size:.76rem;letter-spacing:.22em;color:var(--accent-2);text-transform:uppercase}
+h1{font-size:clamp(1.9rem,5vw,3rem);line-height:1.1;margin:14px 0 0;font-weight:800;letter-spacing:-.01em}
+h1 .sub{display:block;font-size:clamp(1rem,2.4vw,1.25rem);font-weight:500;color:var(--muted);margin-top:12px;letter-spacing:0}
+.lead{color:var(--muted);max-width:62ch;margin:18px 0 0}
+.howto{margin-top:22px;font-size:.86rem;color:var(--faint);border-left:2px solid var(--accent-dim);padding:4px 0 4px 14px;font-family:var(--mono)}
+.hcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:30px 0 0}
+.hcard{display:block;text-decoration:none;color:inherit;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r);padding:16px 16px 18px;transition:.18s}
+.hcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+.hcard .n{font-family:var(--mono);font-size:.72rem;color:var(--accent);letter-spacing:.1em}
+.hcard h3{margin:7px 0 5px;font-size:1rem;border:none;padding:0}
+.hcard p{margin:0;font-size:.8rem;color:var(--muted)}
+
+/* sections & headings */
+section{scroll-margin-top:18px;padding-top:30px}
+main h2{font-size:clamp(1.4rem,3.2vw,2rem);margin:0 0 8px;font-weight:800;letter-spacing:-.01em;
+  border-top:1px solid var(--line);padding-top:26px}
+main h3{font-size:1.12rem;margin:18px 0 6px;color:var(--text)}
+.mini h4{margin:0 0 6px;color:var(--accent);font-family:var(--mono);font-size:.86rem}
+.cnn h4,.card h4{margin:6px 0 6px;color:var(--accent);font-family:var(--mono);font-size:.86rem}
+
+/* components (re-skinned to theme) */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin:14px 0}
+.plain{background:rgba(69,200,192,.07);border:1px solid var(--accent-dim);border-left:3px solid var(--accent-2);
+  border-radius:var(--r);padding:12px 16px;margin:12px 0;color:var(--muted)}
+.plain b{color:var(--accent-2)}
+.tag{display:inline-block;font-family:var(--mono);font-size:.7rem;padding:1px 8px;border-radius:5px;
+  background:transparent;color:var(--accent);border:1px solid var(--accent-dim);letter-spacing:.06em;margin-left:8px}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:720px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.mini{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:13px;color:var(--muted)}
+.f{font-family:var(--mono);background:var(--ground-2);border:1px solid var(--line);border-left:3px solid var(--accent-2);
+  border-radius:8px;padding:10px 14px;display:inline-block;margin:8px 0;color:var(--accent-2);overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.84rem;margin:8px 0}
+th,td{border:1px solid var(--line);padding:5px 8px;text-align:center}
+th{background:var(--surface);color:var(--accent);font-family:var(--mono);font-size:.78rem}
+button{font-family:var(--mono);font-size:.82rem;cursor:pointer;background:var(--accent);color:#06231f;
+  border:1px solid var(--accent);font-weight:700;padding:8px 14px;border-radius:7px;margin:4px 4px 4px 0;transition:.15s}
+button:hover{filter:brightness(1.1)}
+button.ghost{background:transparent;color:var(--accent);border-color:var(--accent-dim)}
+button.ghost:hover{background:rgba(69,200,192,.08)}
+input[type=range]{width:160px;vertical-align:middle;accent-color:var(--accent)}
+input[type=number],select{background:var(--ground-2);color:var(--text);border:1px solid var(--line);
+  border-radius:7px;padding:6px 9px;font-family:var(--mono);font-size:.9rem;width:78px}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+canvas{background:var(--ground-2);border:1px solid var(--line);border-radius:var(--r);max-width:100%;touch-action:none}
+.out{font-size:.95rem;margin-top:8px;font-family:var(--mono);color:var(--text)}
+.out b{color:var(--accent-2)}
+.pill{padding:2px 8px;border-radius:5px;font-weight:bold;font-family:var(--mono);font-size:.82rem}
+.cA{background:rgba(69,200,192,.2);color:var(--accent)}
+.cB{background:rgba(240,168,48,.2);color:var(--accent-2)}
+.scroller{overflow-x:auto}
+.note{color:var(--faint);font-size:.84rem}
+.note b{color:var(--accent)}
+.timeline{position:relative;margin:10px 0 4px 8px;padding-left:22px;border-left:2px solid var(--line)}
+.tl{position:relative;margin:0 0 13px;color:var(--muted)}
+.tl::before{content:"";position:absolute;left:-30px;top:6px;width:11px;height:11px;border-radius:50%;
+  background:var(--accent);box-shadow:0 0 0 4px rgba(69,200,192,.15)}
+.tl b{color:var(--accent-2)}
+.conc{position:relative;height:230px}
+.ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;
+  display:flex;align-items:flex-start;justify-content:center;padding-top:8px;font-weight:bold;font-family:var(--mono);border:2px solid}
+.quiz button{background:var(--surface-2);border:1px solid var(--line);color:var(--text);display:block;width:100%;text-align:left;font-family:var(--sans);font-weight:500}
+.quiz button.ok{background:rgba(95,208,138,.2);border-color:var(--good);color:var(--text)}
+.quiz button.no{background:rgba(239,111,111,.18);border-color:var(--bad);color:var(--text)}
+
+footer{border-top:1px solid var(--line);margin-top:70px;padding:28px 0;color:var(--faint);font-size:.82rem;font-family:var(--mono)}
+
+/* mobile */
+.menu-btn{display:none}
+@media(max-width:860px){
+  .shell{grid-template-columns:1fr}
+  nav.side{position:fixed;z-index:30;width:268px;transform:translateX(-100%);transition:.25s;box-shadow:0 0 40px rgba(0,0,0,.5)}
+  nav.side.open{transform:none}
+  .menu-btn{display:flex;align-items:center;gap:8px;position:fixed;z-index:31;top:14px;right:14px;
+    background:var(--surface);border:1px solid var(--accent-dim);color:var(--accent);border-radius:8px;
+    padding:8px 12px;font-family:var(--mono);font-size:.8rem;cursor:pointer}
+  main{padding-top:8px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}#trace-canvas{display:none}*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn" aria-label="開啟章節選單">☰ 章節</button>
+
+<div class="shell">
+<nav class="side" id="side">
+  <div class="brand">Intro to AI<b>人工智慧導論</b></div>
+  <div class="subjnav">
+    <div class="stitle">科目 Subjects</div>
+    <a class="lnk" href="index.html">⌂ 所有科目</a>
+    <a class="lnk" href="architecture.html">計算機結構學</a>
+    <a class="lnk subj-cur" href="ai.html">人工智慧導論</a>
+  </div>
+  <ol>
+    <li><a class="lnk" href="#top">總覽 Overview</a></li>
+    <li class="grp">概念基礎</li>
+    <li><a class="lnk" href="#c1">AI / ML / DL</a></li>
+    <li><a class="lnk" href="#c2">AI 發展史</a></li>
+    <li><a class="lnk" href="#c3">四種學習類型</a></li>
+    <li class="grp">監督式學習</li>
+    <li><a class="lnk" href="#knn">最近鄰居 KNN</a></li>
+    <li><a class="lnk" href="#tree">決策樹</a></li>
+    <li><a class="lnk" href="#bayes">貝氏分類器</a></li>
+    <li class="grp">非監督 / 增強</li>
+    <li><a class="lnk" href="#km">K-Means 分群</a></li>
+    <li><a class="lnk" href="#rl">增強學習</a></li>
+    <li class="grp">深度學習</li>
+    <li><a class="lnk" href="#cnn">卷積神經網路 CNN</a></li>
+    <li><a class="lnk" href="#nn">神經網路實作</a></li>
+  </ol>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="top">
+  <canvas id="trace-canvas" aria-hidden="true"></canvas>
+  <div class="inner">
+    <span class="eyebrow">Introduction to Artificial Intelligence</span>
+    <h1>把 AI 觀念變成可以動手玩的圖解
+      <span class="sub">從 AI / ML / DL 的關係，到機器學習五大演算法與 CNN</span>
+    </h1>
+    <p class="lead">這份教材把「人工智慧導論」拆成易懂的脈絡：先搞懂三個名詞的關係與歷史，再用互動圖解把監督式、非監督式、增強學習與深度學習一個個玩過一遍。每個演算法都配可調參數的小工具——拉一下，看它怎麼判斷。</p>
+    <p class="howto">使用方式 · 左側導覽跳節 → 讀白話說明 → 看圖解 → 操作互動工具驗證理解</p>
+    <div class="hcards">
+      <a class="hcard" href="#c1"><span class="n">PART 1</span><h3>概念基礎</h3><p>AI/ML/DL、發展史、四種學習類型</p></a>
+      <a class="hcard" href="#knn"><span class="n">PART 2</span><h3>監督式學習</h3><p>KNN、決策樹、貝氏分類器</p></a>
+      <a class="hcard" href="#km"><span class="n">PART 3</span><h3>非監督 / 增強</h3><p>K-Means 分群、增強學習</p></a>
+      <a class="hcard" href="#cnn"><span class="n">PART 4</span><h3>深度學習</h3><p>CNN、神經網路實作觀念</p></a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ 1 ============ -->
+<section id="c1">
+  <h2>① AI、ML、DL 到底差在哪？</h2>
+  <div class="plain"><b>一句話：</b>AI 是「目標」，ML 是「達成目標的一種方法」，DL 又是「ML 裡的一種特別厲害的方法」。三者是<b>包含關係</b>，不是並列。</div>
+  <div class="card">
+    <div class="grid g2" style="align-items:center">
+      <div class="conc" id="conc"></div>
+      <div>
+        <p><span class="tag">最大圈</span><b>AI 人工智慧</b>：用機器實現人類智慧的<b>技術總稱</b>。底下還包含統計、機率、邏輯、推論。</p>
+        <p><span class="tag">中圈</span><b>ML 機器學習</b>：讓機器「學特定知識」後再應用（線性回歸、分群…）。</p>
+        <p><span class="tag">最小圈</span><b>DL 深度學習</b>：由類神經網路進化而來，ML 的一種。</p>
+        <div class="f">AI ⊃ ML ⊃ DL</div>
+      </div>
+    </div>
+  </div>
+  <h3>智慧 vs 人工智慧 · 圖靈測試</h3>
+  <div class="grid g3">
+    <div class="mini"><h4>強 AI</h4>有智慧的「心理」，像會思考的哆啦A夢。<span class="note">（目前還做不到）</span></div>
+    <div class="mini"><h4>弱 AI</h4>有智慧的「行為」：自駕、影像/聲音辨識。<span class="note">（現今主流）</span></div>
+    <div class="mini"><h4>圖靈測試</h4>跟它聊天分不出是不是人類就「通過」。但<b>查表程式</b>也能騙過 → 通過≠真智慧。</div>
+  </div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section id="c2">
+  <h2>② AI 發展史：三波熱潮與一個寒冬</h2>
+  <div class="plain"><b>為什麼要懂歷史？</b>因為考點常問「哪一波用什麼方法」「深度學習為何 2012 才爆紅」。記住關鍵字即可。</div>
+  <div class="card">
+    <div class="timeline">
+      <div class="tl"><b>第一波 · 邏輯推論</b>（1940-50s）首隻 AI 程式「邏輯理論家」，會證明數學原理。</div>
+      <div class="tl"><b>瓶頸</b>（1960-70s）翻譯需背景知識、電腦太弱 → 經費被砍。</div>
+      <div class="tl"><b>第二波 · 專家系統</b>（1970-80s）用大量領域知識，診斷血液感染勝過非專科醫師。</div>
+      <div class="tl"><b>AI 寒冬</b>（1980 後期）研究費百萬→數十億美金，但成效跟不上。</div>
+      <div class="tl"><b>科學方法</b>（1990-2000s）導入機率與不確定性；發現「資料」常比演算法更關鍵。</div>
+      <div class="tl"><b>第三波 · 機器學習</b>（2000s~現在）電腦變快、平行運算、儲存變便宜。</div>
+      <div class="tl"><b>DL 爆紅</b> 2006 Hinton 提 RBM → 2012 ImageNet 錯誤率 16% 電翻第二名 26% → 靠 NVIDIA CUDA 用 GPU 跑矩陣運算。</div>
+    </div>
+    <div class="plain"><b>核心觀念：</b>同一個演算法，在不同時空背景可能被評為「沒用」或「超強」。例：圖片回填演算法，素材只有 1 萬張時很爛，有 200 萬張時很優秀 → <b>資料量改變一切</b>。</div>
+  </div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="c3">
+  <h2>③ 機器學習的四種類型</h2>
+  <div class="plain"><b>分辨關鍵就看「答案(label)」：</b>全部有答案 / 全部沒答案 / 少部分有答案 / 不是單次而是連續決策。</div>
+  <div class="grid g4">
+    <div class="mini"><h4>監督式</h4>資料<b>全有答案</b>。先標記貓/狗，取特徵再比對。<span class="note">→ 分類、回歸</span></div>
+    <div class="mini"><h4>非監督式</h4>資料<b>全沒答案</b>。只知「是不是同一類」，不知是什麼。<span class="note">→ K-Means 分群</span></div>
+    <div class="mini"><h4>半監督式</h4><b>少數有答案</b>。10000 張只標 100 張：先學特徵(監督)再分群(非監督)。</div>
+    <div class="mini"><h4>增強學習</h4><b>連續多次決策</b>達成最終目標。象棋(競爭)、自駕(合作)。</div>
+  </div>
+  <div class="card quiz" id="q3">
+    <h3>小測驗：「給 10000 張圖，只有 100 張標好貓狗」屬於？</h3>
+    <button data-a="0">監督式學習</button>
+    <button data-a="0">非監督式學習</button>
+    <button data-a="1">半監督式學習</button>
+    <button data-a="0">增強學習</button>
+    <p class="out" id="q3out"></p>
+  </div>
+</section>
+
+<!-- ============ KNN ============ -->
+<section id="knn">
+  <h2>④ 最近鄰居法 KNN（監督式）<span class="tag">★常考計算</span></h2>
+  <div class="plain"><b>白話：</b>「物以類聚」。把每筆資料當成空間中的一個點，要判斷新的點屬於哪一類，就看<b>離它最近的 k 個鄰居</b>大多數是哪一類，用<b>多數決</b>決定。</div>
+  <div class="card">
+    <h3>歐式距離公式（兩點直線距離）</h3>
+    <div class="f">d(x, y) = √ Σ (x<sub>k</sub> − y<sub>k</sub>)²</div>
+    <div class="grid g2">
+      <div><canvas id="knnC" width="380" height="320"></canvas></div>
+      <div>
+        <p>調整 k 看看最近鄰居怎麼變、判斷結果怎麼變：</p>
+        <p>k = <b id="kVal">3</b> &nbsp; <input type="range" id="kRange" min="1" max="7" step="2" value="3"></p>
+        <p class="note">十字＝待判斷的測試點。圓圈標出的就是最近的 k 個鄰居。</p>
+        <p class="out" id="knnOut"></p>
+        <p class="note">為什麼 k 用奇數？避免「平手」(例如 2-NN 一邊一個投不出結果)。k 太大→混入無關點；太小→被個別雜訊影響。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Tree ============ -->
+<section id="tree">
+  <h2>⑤ 決策樹 / 分類樹（監督式）</h2>
+  <div class="plain"><b>白話：</b>像「20 個問題」遊戲，一層層用屬性發問把資料分流。<b>分支＝屬性</b>，<b>葉節點＝答案(標籤/機率)</b>。</div>
+  <div class="card">
+    <h3>範例：根據天氣決定要不要打籃球（32 次經驗）</h3>
+    <p class="note">點任一片葉子，看它代表的打球機率 👇</p>
+    <div class="scroller"><svg id="treeSvg" width="640" height="330" style="min-width:560px"></svg></div>
+    <p class="out" id="treeOut">點選葉節點看結果…</p>
+  </div>
+</section>
+
+<!-- ============ Bayes ============ -->
+<section id="bayes">
+  <h2>⑥ 貝氏分類器（監督式）<span class="tag">★必考計算</span></h2>
+  <div class="plain"><b>白話：</b>「以過去經驗推測現在」。假設各特徵互相獨立，把各特徵的條件機率<b>相乘</b>，比較哪個類別算出來的數字大，就判給誰。</div>
+  <div class="card">
+    <div class="f">P(X,Y) = P(Y|X)·P(X) = P(X|Y)·P(Y)　｜　事前機率 P(X)、事後機率 P(X|Y)</div>
+    <h3>信用卡核准範例（準時 Yes=6 人、未準時 No=4 人）</h3>
+    <div class="scroller"><table>
+      <tr><th></th><th>男</th><th>女</th><th>&lt;15</th><th>15-25</th><th>26-40</th><th>&gt;40</th><th>低</th><th>中</th><th>高</th></tr>
+      <tr><th>Yes(6)</th><td>4</td><td>2</td><td>0</td><td>2</td><td>3</td><td>1</td><td>1</td><td>2</td><td>3</td></tr>
+      <tr><th>No(4)</th><td>1</td><td>3</td><td>2</td><td>1</td><td>1</td><td>0</td><td>3</td><td>1</td><td>0</td></tr>
+    </table></div>
+    <p>選一位新申請人，按「計算」比較 Yes / No：</p>
+    <p>
+      性別 <select id="bg"><option>男</option><option selected>女</option></select>
+      年齡 <select id="ba"><option>&lt;15</option><option>15-25</option><option selected>26-40</option><option>&gt;40</option></select>
+      收入 <select id="bi"><option>低</option><option selected>中</option><option>高</option></select>
+      <button id="bBtn">計算</button>
+    </p>
+    <p class="out" id="bOut"></p>
+    <p class="note">算法：P(類)×Π P(屬性|類)。P(類)=人數/總數；P(屬性|類)=該類中該屬性出現次數 ÷ 該類人數。只比大小，分母可不用化簡。</p>
+  </div>
+</section>
+
+<!-- ============ K-Means ============ -->
+<section id="km">
+  <h2>⑦ K-Means 分群（非監督式）</h2>
+  <div class="plain"><b>白話：</b>沒有答案，只想把資料「自動分成 k 群」。先亂丟 k 個中心，反覆做「就近歸隊 → 中心移到群的平均位置」，直到不再變動。</div>
+  <div class="card">
+    <div class="grid g2">
+      <div><canvas id="kmC" width="380" height="320"></canvas></div>
+      <div>
+        <p>群數 k = <b id="kmK">3</b> <input type="range" id="kmRange" min="2" max="5" value="3"></p>
+        <button id="kmStep">下一步 ▶</button>
+        <button id="kmAuto" class="ghost">自動跑</button>
+        <button id="kmReset" class="ghost">重設</button>
+        <p class="out" id="kmOut"></p>
+        <ol class="note">
+          <li>設定群數 k、隨機放 k 個中心（大圓點）</li>
+          <li>每個點歸給「最近的中心」（顏色）</li>
+          <li>中心移到該群所有點的平均位置（質心）</li>
+          <li>重複 2-3，<b>分群不再變動＝收斂</b></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RL ============ -->
+<section id="rl">
+  <h2>⑧ 增強學習 Reinforcement Learning</h2>
+  <div class="plain"><b>白話：</b>像玩遊戲打怪：看「現在狀態」做「動作」，環境給你「獎勵」分數，目標是讓<b>總獎勵最大</b>。</div>
+  <div class="card">
+    <div class="grid g4">
+      <div class="mini"><h4>Environment 環境</h4>你身處的世界</div>
+      <div class="mini"><h4>State 狀態</h4>目前的情況</div>
+      <div class="mini"><h4>Action 動作</h4>你做的選擇</div>
+      <div class="mini"><h4>Reward 獎勵</h4>環境給的回饋分數</div>
+    </div>
+    <p class="note" style="text-align:center">State →(看狀態做)→ Action →(改變環境給)→ Reward →(進入新)→ State …循環，最大化總報酬</p>
+    <div class="plain"><b>探索 Explore vs 利用 Exploit（100 張餐券找最好吃餐廳）：</b><br>
+      探索＝去沒吃過的新餐廳；利用＝一直回去目前最高分的店。<br>
+      ⚠ 太愛探索 → 券用完還沒定下來；太愛利用 → 可能錯過更好吃的。好策略要<b>兩者平衡</b>。</div>
+  </div>
+</section>
+
+<!-- ============ CNN ============ -->
+<section id="cnn" class="cnn">
+  <h2>⑨ 卷積神經網路 CNN<span class="tag">★核心計算</span></h2>
+  <div class="plain"><b>白話：</b>同一個「X」每個人手寫都不太一樣，沒辦法用 if-else 寫死。CNN 的招數是「<b>不要找整張一模一樣，改找局部小特徵有沒有出現</b>」。<br>
+  結構 = <b>基本神經網路 + 卷積層 + 池化層</b>（白=1、黑=−1）。</div>
+
+  <div class="card">
+    <h3>卷積運算 Convolution：用小濾鏡(filter)滑過整張圖找特徵</h3>
+    <p class="note">把 3×3 區域和特徵相乘取平均：值越接近 <b>1</b> = 越符合特徵。下面是其中一格的算法示意。</p>
+    <div class="f" id="convDemo"></div>
+    <p class="note">例：(1+1+1+1+1+1+1+1+1)/9 = 1.00（完全吻合）；(−1+1×8)/9 = 0.78；(−1×3+1×6)/9 = 0.33。</p>
+    <h3>池化 Pooling：取區域最大值 → 減少資料量、保留特徵位置</h3>
+    <h3>ReLU 線性整流：把小於 0 的值換成 0 → 增加非線性</h3>
+  </div>
+
+  <div class="card">
+    <h3>★ 輸出尺寸計算器</h3>
+    <div class="f">Output = floor( (n + p − k) / s + 1 )</div>
+    <p class="note">n=輸入維度、k=filter維度、p=padding、s=stride、floor=無條件捨去</p>
+    <p>
+      n <input type="number" id="on" value="9">
+      p <input type="number" id="op" value="0">
+      k <input type="number" id="ok" value="3">
+      s <input type="number" id="os" value="1">
+      <button id="oBtn">算</button>
+    </p>
+    <p class="out" id="oOut"></p>
+    <p class="note">驗證：(9,0,3,1)→7　(5,0,3,2)→2　(2,2,3,1)→2　池化(7,1,2,2)→4</p>
+  </div>
+
+  <div class="card">
+    <h3>★ 可訓練參數計算器</h3>
+    <div class="grid g2">
+      <div>
+        <h4>卷積層 Conv</h4>
+        <div class="f">輸入通道 × filter數 × (filter維²) + filter數</div>
+        通道<input type="number" id="cch" value="3">
+        filter數<input type="number" id="cf" value="32">
+        filter邊<input type="number" id="ck" value="3">
+        <button id="cBtn">算</button>
+        <p class="out" id="cOut"></p>
+        <p class="note">例：3×2×(3×3)+2=56；3×32×9+32=896；32×64×9+64=18496</p>
+      </div>
+      <div>
+        <h4>全連接層 Dense</h4>
+        <div class="f">輸入神經元 × 輸出神經元 + 輸出神經元</div>
+        輸入<input type="number" id="din" value="784">
+        輸出<input type="number" id="dout" value="256">
+        <button id="dBtn">算</button>
+        <p class="out" id="dOut"></p>
+        <p class="note">例：784×256+256=200960；256×10+10=2570</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NN ============ -->
+<section id="nn">
+  <h2>⑩ 神經網路實作觀念（MNIST / CIFAR）</h2>
+  <div class="grid g2">
+    <div class="mini"><h4>MNIST 手寫數字</h4>60000 訓練 / 10000 測試；<b>28×28 灰階</b>；0–9 共 10 類。輸入攤平成 <b>784</b> 個神經元，輸出 10 個。</div>
+    <div class="mini"><h4>CIFAR 物件</h4>50000 / 10000；<b>32×32 彩色(RGB 3 通道)</b>；10 類(飛機/車/貓/狗/鳥…)。參數約 MNIST 的 20 倍。</div>
+  </div>
+  <div class="card">
+    <h3>單顆神經元在做什麼？</h3>
+    <div class="f">Output = f( x₀·w₀ + x₁·w₁ + … + xₙ·wₙ + b )</div>
+    <p>輸入 × <b>權重 w</b> 全部加起來，再加 <b>偏差 b</b>，最後過一個<b>激發函數 f</b>。</p>
+    <div class="grid g3">
+      <div class="mini"><h4>ReLU</h4>隱藏層常用，負的變 0。</div>
+      <div class="mini"><h4>Softmax</h4>輸出層分類用，把輸出變成各類「機率」。</div>
+      <div class="mini"><h4>權重初始化</h4>用常態分佈(normal)亂數給初始值。</div>
+    </div>
+    <h3>資料預處理（兩個必記）</h3>
+    <div class="grid g2">
+      <div class="mini"><h4>正規化 Normalization</h4>像素 0–255 ÷255 → <b>0~1</b>。讓不同特徵能客觀比較變化量。</div>
+      <div class="mini"><h4>One-hot encoding</h4>數字 5 → <b>[0,0,0,0,0,1,0,0,0,0]</b>。每類一欄，用 0/1 表示，給輸出層用。</div>
+    </div>
+    <h3>流程（sklearn / keras）</h3>
+    <p><b>model.fit</b> 訓練 → <b>model.evaluate</b> 算準確率(accuracy) → <b>model.predict</b> 預測。<br>
+    GPU vs CPU：CIFAR 37 秒 vs 23 分鐘（平行運算差很多）。有趣現象：正確答案有時是「機率第二高」的那個。</p>
+  </div>
+
+  <div class="card">
+    <h3>順手記：SVM 與線性回歸（Lab）</h3>
+    <div class="grid g2">
+      <div class="mini"><h4>SVM 支援向量機</h4>找一條邊界讓兩類<b>邊距(margin)最大</b>。與 K-Means 差別：SVM 本來就知道分類(找最佳邊界)，K-Means 本來不知道(去找分群)。</div>
+      <div class="mini"><h4>線性回歸</h4>找<b>自變數</b>與<b>應變數</b>的關係(畫一條擬合線)。例：用克拉推估鑽石價格。</div>
+    </div>
+  </div>
+</section>
+
+<footer>整理自課程簡報 ch0–ch3 與 Lab ✦ 祝期末順利 🎓</footer>
+
+</div>
+</main>
+</div>
+
+<script>
+"use strict";
+/* ============ 共用：行動選單 + scroll-spy（沿用計結頁） ============ */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const side=$('#side'), menuBtn=$('#menuBtn');
+menuBtn.addEventListener('click',()=>side.classList.toggle('open'));
+$$('.side a.lnk').forEach(a=>a.addEventListener('click',()=>side.classList.remove('open')));
+(function(){
+  const linkFor=id=>$(`.side a[href="#${id}"]`);
+  const spyTargets=$$('main [id]').filter(el=>linkFor(el.id));
+  const spy=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){
+      $$('.side a.lnk.active').forEach(a=>a.classList.remove('active'));
+      const l=linkFor(e.target.id); if(l) l.classList.add('active');
+    }});
+  },{rootMargin:'-45% 0px -50% 0px',threshold:0});
+  spyTargets.forEach(t=>spy.observe(t));
+})();
+
+/* ============ hero canvas ============ */
+(function(){
+  const c=$('#trace-canvas'); if(!c) return;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const ctx=c.getContext('2d'); let W,H,traces=[],pulses=[];
+  function size(){W=c.width=c.offsetWidth; H=c.height=c.offsetHeight; build();}
+  function build(){
+    traces=[]; const rows=Math.max(4,Math.floor(H/46));
+    for(let i=0;i<rows;i++){
+      const y=20+i*((H-40)/(rows-1||1));
+      const segs=[{x:0,y}]; let x=0;
+      while(x<W){ x+=40+Math.random()*120; const ny=y+(Math.random()<.4?(Math.random()<.5?-18:18):0);
+        segs.push({x:Math.min(x,W),y}); if(ny!==y){segs.push({x:Math.min(x,W),y:ny}); segs[segs.length-2].y=y;}
+      }
+      traces.push(segs);
+    }
+    pulses=[]; for(let i=0;i<Math.min(10,rows);i++) pulses.push(spawn());
+  }
+  function spawn(){const t=Math.floor(Math.random()*traces.length); return {t,p:Math.random()*0.3,sp:0.0012+Math.random()*0.002};}
+  function ptAt(segs,frac){
+    let total=0,lens=[];
+    for(let i=1;i<segs.length;i++){const d=Math.hypot(segs[i].x-segs[i-1].x,segs[i].y-segs[i-1].y);lens.push(d);total+=d;}
+    let target=frac*total,acc=0;
+    for(let i=1;i<segs.length;i++){ if(acc+lens[i-1]>=target){const r=(target-acc)/(lens[i-1]||1);
+      return {x:segs[i-1].x+(segs[i].x-segs[i-1].x)*r,y:segs[i-1].y+(segs[i].y-segs[i-1].y)*r};} acc+=lens[i-1];}
+    return segs[segs.length-1];
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.lineWidth=1; ctx.strokeStyle='rgba(40,69,106,.55)';
+    traces.forEach(segs=>{ctx.beginPath();ctx.moveTo(segs[0].x,segs[0].y);for(let i=1;i<segs.length;i++)ctx.lineTo(segs[i].x,segs[i].y);ctx.stroke();
+      segs.forEach(s=>{ctx.fillStyle='rgba(40,69,106,.7)';ctx.fillRect(s.x-1,s.y-1,2,2);});});
+    pulses.forEach((pu,idx)=>{ pu.p+=pu.sp; if(pu.p>1.05){pulses[idx]=spawn();return;}
+      const pt=ptAt(traces[pu.t],Math.min(pu.p,1));
+      const g=ctx.createRadialGradient(pt.x,pt.y,0,pt.x,pt.y,7);
+      g.addColorStop(0,'rgba(69,200,192,.95)');g.addColorStop(1,'rgba(69,200,192,0)');
+      ctx.fillStyle=g; ctx.beginPath();ctx.arc(pt.x,pt.y,7,0,7);ctx.fill();
+      ctx.fillStyle='rgba(240,168,48,.9)';ctx.beginPath();ctx.arc(pt.x,pt.y,1.6,0,7);ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',size); size(); draw();
+})();
+
+/* ============ 同心圓 AI/ML/DL ============ */
+(function(){
+  const box=document.getElementById('conc');
+  const data=[['AI',210,'#45c8c0'],['ML',150,'#f0a830'],['DL',86,'#c79be0']];
+  data.forEach(([t,s,c])=>{
+    const d=document.createElement('div');d.className='ring';
+    d.style.width=d.style.height=s+'px';d.style.borderColor=c;d.style.color=c;
+    d.style.background=c+'1a';d.textContent=t;box.appendChild(d);
+  });
+})();
+
+/* ============ 小測驗 q3 ============ */
+document.querySelectorAll('#q3 button').forEach(b=>{
+  b.onclick=()=>{
+    const ok=b.dataset.a==='1';
+    b.classList.add(ok?'ok':'no');
+    document.getElementById('q3out').innerHTML= ok
+      ? '✅ 正確！少部分有答案+大部分沒答案 = <b>半監督式</b>。'
+      : '❌ 再想想：只有「一部分」資料有 label 喔。';
+  };
+});
+
+/* ============ KNN ============ */
+(function(){
+  const cv=document.getElementById('knnC'),x=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const pts=[
+    [2,3,'A'],[3,2.2,'A'],[2.6,4,'A'],[1.6,2,'A'],[3.5,3.3,'A'],[2.2,5,'A'],[4,2,'A'],
+    [7,7,'B'],[8,6.2,'B'],[6.4,7.5,'B'],[7.6,8,'B'],[8.4,7,'B'],[6,6.4,'B'],[7.2,5.6,'B'],
+    [5.2,5.6,'B'],[4.6,4.4,'A']
+  ];
+  const test=[5,5];
+  const colA='#45c8c0',colB='#f0a830';
+  const sx=v=>30+v*(W-50)/10, sy=v=>H-30-v*(H-50)/10;
+  let k=3;
+  function draw(){
+    x.clearRect(0,0,W,H);
+    x.strokeStyle='#28456a';x.lineWidth=1;x.beginPath();x.moveTo(28,10);x.lineTo(28,H-28);x.lineTo(W-10,H-28);x.stroke();
+    const d=pts.map((p,i)=>({i,dist:Math.hypot(p[0]-test[0],p[1]-test[1])}))
+              .sort((a,b)=>a.dist-b.dist).slice(0,k);
+    const near=new Set(d.map(o=>o.i));
+    let ca=0,cb=0;
+    pts.forEach((p,i)=>{
+      if(near.has(i)){
+        x.beginPath();x.arc(sx(p[0]),sy(p[1]),12,0,7);x.strokeStyle='#e8eef5';x.lineWidth=2;x.stroke();
+        if(p[2]==='A')ca++;else cb++;
+      }
+      x.beginPath();x.arc(sx(p[0]),sy(p[1]),6,0,7);x.fillStyle=p[2]==='A'?colA:colB;x.fill();
+    });
+    x.strokeStyle='#e8eef5';x.lineWidth=3;
+    x.beginPath();x.moveTo(sx(5)-7,sy(5));x.lineTo(sx(5)+7,sy(5));
+    x.moveTo(sx(5),sy(5)-7);x.lineTo(sx(5),sy(5)+7);x.stroke();
+    const win=ca>cb?'A 類':cb>ca?'B 類':'平手!';
+    const col=ca>cb?'cA':cb>ca?'cB':'';
+    document.getElementById('knnOut').innerHTML=
+      `最近 ${k} 個鄰居：<span class="pill cA">A × ${ca}</span> <span class="pill cB">B × ${cb}</span><br>多數決 → 判定為 <span class="pill ${col}">${win}</span>`;
+  }
+  document.getElementById('kRange').oninput=e=>{k=+e.target.value;document.getElementById('kVal').textContent=k;draw();};
+  draw();
+})();
+
+/* ============ 決策樹 ============ */
+(function(){
+  const svg=document.getElementById('treeSvg');
+  const NS='http://www.w3.org/2000/svg';
+  function node(xx,yy,txt,fill,leaf){
+    const g=document.createElementNS(NS,'g');
+    const r=document.createElementNS(NS,'rect');
+    r.setAttribute('x',xx-55);r.setAttribute('y',yy-18);r.setAttribute('width',110);r.setAttribute('height',36);
+    r.setAttribute('rx',9);r.setAttribute('fill',fill);r.setAttribute('stroke','#28456a');
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',xx);t.setAttribute('y',yy+5);t.setAttribute('text-anchor','middle');
+    t.setAttribute('fill','#e8eef5');t.setAttribute('font-size','13');t.textContent=txt;
+    g.appendChild(r);g.appendChild(t);
+    if(leaf){g.style.cursor='pointer';g.onclick=()=>{
+      document.getElementById('treeOut').innerHTML='🏀 '+leaf;
+    };}
+    svg.appendChild(g);
+  }
+  function line(x1,y1,x2,y2,lbl){
+    const l=document.createElementNS(NS,'line');
+    l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+    l.setAttribute('stroke','#3a5a86');l.setAttribute('stroke-width','2');svg.appendChild(l);
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',(x1+x2)/2);t.setAttribute('y',(y1+y2)/2-4);t.setAttribute('fill','#9fb3cc');
+    t.setAttribute('font-size','12');t.setAttribute('text-anchor','middle');t.textContent=lbl;svg.appendChild(t);
+  }
+  const A='#2a7c77',G='#39794f',W='#9c6f23';
+  line(320,40,140,120,'太陽');line(320,40,320,120,'陰天');line(320,40,500,120,'下雨');
+  node(320,40,'目測天氣?',A);
+  node(140,120,'溼度?',A);
+  node(320,120,'打球 8/10',G,'陰天：高機率打球（8/10）');
+  node(500,120,'是否颳風?',A);
+  line(140,120,70,210,'≤75');line(140,120,210,210,'>75');
+  node(70,210,'打球 8/8',G,'太陽+溼度≤75：一定打（8/8）');
+  node(210,210,'打球 2/4',W,'太陽+溼度>75：只剩 2/4，不太建議');
+  line(500,120,430,210,'是');line(500,120,575,210,'否');
+  node(430,210,'打球 0/4',W,'下雨+颳風：別去（0/4）');
+  node(575,210,'打球 2/6',W,'下雨+沒颳風：機率低（2/6）');
+})();
+
+/* ============ 貝氏 ============ */
+(function(){
+  const Y={男:4,女:2,'<15':0,'15-25':2,'26-40':3,'>40':1,低:1,中:2,高:3,_:6};
+  const N={男:1,女:3,'<15':2,'15-25':1,'26-40':1,'>40':0,低:3,中:1,高:0,_:4};
+  document.getElementById('bBtn').onclick=()=>{
+    const g=bg.value,a=ba.value,i=bi.value;
+    const py=(6/10)*(Y[g]/6)*(Y[a]/6)*(Y[i]/6);
+    const pn=(4/10)*(N[g]/4)*(N[a]/4)*(N[i]/4);
+    const win=py>pn?'會準時還款 → 核准 ✅':pn>py?'不會準時 → 不核准 ❌':'平手';
+    document.getElementById('bOut').innerHTML=
+      `Yes: (6/10)×(${Y[g]}/6)×(${Y[a]}/6)×(${Y[i]}/6) = <b>${py.toFixed(4)}</b><br>`+
+      `No: (4/10)×(${N[g]}/4)×(${N[a]}/4)×(${N[i]}/4) = <b>${pn.toFixed(4)}</b><br>`+
+      `比大小 → <b>${win}</b>`;
+  };
+  document.getElementById('bBtn').click();
+})();
+
+/* ============ K-Means ============ */
+(function(){
+  const cv=document.getElementById('kmC'),x=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const cols=['#45c8c0','#f0a830','#5fd08a','#7fb3ee','#c79be0'];
+  let K=3,pts=[],cent=[],phase=0,timer=null,seed=42;
+  function rnd(){seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;}
+  function init(){
+    seed=42;pts=[];
+    const clusters=[[90,90],[290,100],[180,240]];
+    clusters.forEach(c=>{for(let i=0;i<14;i++)pts.push({x:c[0]+(rnd()-.5)*90,y:c[1]+(rnd()-.5)*90,c:-1});});
+    cent=[];for(let i=0;i<K;i++)cent.push({x:40+rnd()*(W-80),y:40+rnd()*(H-80)});
+    phase=0;draw();status('已隨機放下 '+K+' 個中心，按「下一步」開始歸隊');
+  }
+  function assign(){pts.forEach(p=>{let bd=1e9,bi=0;cent.forEach((c,i)=>{const d=(p.x-c.x)**2+(p.y-c.y)**2;if(d<bd){bd=d;bi=i;}});p.c=bi;});}
+  function update(){let moved=0;cent.forEach((c,i)=>{const g=pts.filter(p=>p.c===i);if(g.length){const nx=g.reduce((s,p)=>s+p.x,0)/g.length,ny=g.reduce((s,p)=>s+p.y,0)/g.length;if(Math.hypot(nx-c.x,ny-c.y)>0.5)moved++;c.x=nx;c.y=ny;}});return moved;}
+  function step(){
+    if(phase%2===0){assign();status('步驟：每個點歸給最近的中心（看顏色）');}
+    else{const m=update();status(m? '步驟：中心移到各群平均位置（質心）':'✅ 中心不再移動 → 分群收斂完成！');if(!m&&timer){clearInterval(timer);timer=null;}}
+    phase++;draw();
+  }
+  function draw(){
+    x.clearRect(0,0,W,H);
+    pts.forEach(p=>{x.beginPath();x.arc(p.x,p.y,5,0,7);x.fillStyle=p.c<0?'#6c84a3':cols[p.c];x.fill();});
+    cent.forEach((c,i)=>{x.beginPath();x.arc(c.x,c.y,11,0,7);x.fillStyle=cols[i];x.globalAlpha=.85;x.fill();x.globalAlpha=1;
+      x.lineWidth=3;x.strokeStyle='#e8eef5';x.stroke();});
+  }
+  function status(t){document.getElementById('kmOut').textContent=t;}
+  document.getElementById('kmStep').onclick=step;
+  document.getElementById('kmReset').onclick=()=>{if(timer){clearInterval(timer);timer=null;}init();};
+  document.getElementById('kmAuto').onclick=()=>{if(timer){clearInterval(timer);timer=null;return;}timer=setInterval(step,650);};
+  document.getElementById('kmRange').oninput=e=>{K=+e.target.value;document.getElementById('kmK').textContent=K;init();};
+  init();
+})();
+
+/* ============ Conv demo ============ */
+document.getElementById('convDemo').textContent='( −1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 ) / 9  =  7/9  ≈  0.78';
+
+/* ============ 輸出尺寸 ============ */
+document.getElementById('oBtn').onclick=()=>{
+  const n=+on.value,p=+op.value,k=+ok.value,s=+os.value;
+  const r=Math.floor((n+p-k)/s+1);
+  document.getElementById('oOut').innerHTML=`floor((${n}+${p}−${k})/${s} + 1) = <b>${r}</b>`;
+};
+document.getElementById('oBtn').click();
+
+/* ============ 卷積參數 ============ */
+document.getElementById('cBtn').onclick=()=>{
+  const ch=+cch.value,f=+cf.value,k=+ck.value;
+  const r=ch*f*(k*k)+f;
+  document.getElementById('cOut').innerHTML=`${ch}×${f}×(${k}×${k}) + ${f} = <b>${r}</b>`;
+};
+document.getElementById('cBtn').click();
+
+/* ============ Dense 參數 ============ */
+document.getElementById('dBtn').onclick=()=>{
+  const i=+din.value,o=+dout.value;
+  document.getElementById('dOut').innerHTML=`${i}×${o} + ${o} = <b>${i*o+o}</b>`;
+};
+document.getElementById('dBtn').click();
+</script>
+</body>
+</html>

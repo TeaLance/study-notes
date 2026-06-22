@@ -1,0 +1,1069 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>計算機結構學 · 互動式學習教材</title>
+<style>
+:root{
+  --ground:#0d1b2a;
+  --ground-2:#0a1521;
+  --surface:#14263c;
+  --surface-2:#1b3050;
+  --line:#28456a;
+  --text:#e8eef5;
+  --muted:#9fb3cc;
+  --faint:#6c84a3;
+  --accent:#45c8c0;      /* signal teal — structure / traces */
+  --accent-dim:#2a7c77;
+  --accent-2:#f0a830;    /* signal amber — active / live */
+  --accent-2-dim:#9c6f23;
+  --good:#5fd08a;
+  --bad:#ef6f6f;
+  --mono:"Cascadia Code","Cascadia Mono",ui-monospace,"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --sans:system-ui,"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans CJK TC",sans-serif;
+  --r:10px;
+  --maxw:880px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--text);
+  font-family:var(--sans);
+  line-height:1.7;
+  font-size:16px;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{color:var(--accent)}
+
+/* ---------- layout ---------- */
+.shell{display:grid;grid-template-columns:268px minmax(0,1fr);min-height:100vh}
+nav.side{
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  background:linear-gradient(180deg,var(--ground-2),var(--ground));
+  border-right:1px solid var(--line);
+  padding:24px 18px 40px;
+}
+main{min-width:0;padding:0 clamp(18px,5vw,64px) 120px}
+.wrap{max-width:var(--maxw);margin:0 auto}
+
+/* ---------- sidebar ---------- */
+.brand{font-family:var(--mono);font-size:.74rem;letter-spacing:.18em;color:var(--accent);text-transform:uppercase}
+.brand b{display:block;font-size:1.04rem;letter-spacing:.04em;color:var(--text);margin-top:6px;font-weight:700}
+.side ol{list-style:none;margin:22px 0 0;padding:0}
+.side .grp{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;color:var(--faint);text-transform:uppercase;margin:20px 0 6px;padding-left:10px}
+.side a.lnk{
+  display:block;text-decoration:none;color:var(--muted);font-size:.9rem;
+  padding:6px 10px;border-left:2px solid transparent;border-radius:0 6px 6px 0;
+  transition:.15s;
+}
+.side a.lnk:hover{color:var(--text);background:rgba(69,200,192,.06)}
+.side a.lnk.active{color:var(--accent);border-left-color:var(--accent);background:rgba(69,200,192,.09)}
+.subjnav{margin:16px 0 4px;padding-bottom:14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.subjnav .stitle{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;color:var(--faint);text-transform:uppercase;margin:0 0 4px;padding-left:10px}
+.side a.lnk.subj-cur{color:var(--accent-2);border-left-color:var(--accent-2);background:rgba(240,168,48,.1);font-weight:700}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:72px 0 36px;overflow:hidden}
+#trace-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.5}
+.hero .inner{position:relative;z-index:1}
+.eyebrow{font-family:var(--mono);font-size:.76rem;letter-spacing:.22em;color:var(--accent);text-transform:uppercase}
+h1{font-size:clamp(2rem,5vw,3.1rem);line-height:1.1;margin:14px 0 0;font-weight:800;letter-spacing:-.01em}
+h1 .sub{display:block;font-size:clamp(1rem,2.4vw,1.3rem);font-weight:500;color:var(--muted);margin-top:12px;letter-spacing:0}
+.lead{color:var(--muted);max-width:62ch;margin:20px 0 0}
+.howto{margin-top:24px;font-size:.86rem;color:var(--faint);border-left:2px solid var(--accent-dim);padding:4px 0 4px 14px;font-family:var(--mono)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:34px 0 0}
+.card{
+  display:block;text-decoration:none;color:inherit;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 20px;transition:.18s;
+}
+.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.card .n{font-family:var(--mono);font-size:.74rem;color:var(--accent);letter-spacing:.12em}
+.card h3{margin:8px 0 6px;font-size:1.06rem}
+.card p{margin:0;font-size:.82rem;color:var(--muted)}
+
+/* ---------- sections ---------- */
+section.chapter{padding-top:54px}
+.ch-head{border-top:1px solid var(--line);padding-top:28px;margin-top:20px}
+.ch-head .eyebrow{color:var(--accent-2)}
+h2{font-size:clamp(1.5rem,3.5vw,2.1rem);margin:10px 0 0;font-weight:800;letter-spacing:-.01em}
+h2 .en{color:var(--faint);font-weight:500;font-size:.62em;font-family:var(--mono);letter-spacing:.02em}
+.ch-intro{color:var(--muted);margin:14px 0 0}
+
+.topic{margin-top:30px}
+.topic > h3{
+  font-size:1.18rem;margin:0 0 4px;display:flex;align-items:baseline;gap:10px;
+}
+.topic > h3 .tag{font-family:var(--mono);font-size:.7rem;color:var(--accent);border:1px solid var(--accent-dim);border-radius:5px;padding:1px 7px;letter-spacing:.08em;flex:none}
+.topic p{margin:10px 0}
+code{font-family:var(--mono);font-size:.9em;background:rgba(108,132,163,.16);padding:1px 6px;border-radius:5px;color:#cfe6ff}
+strong.term{color:var(--accent-2);font-weight:700}
+kbd{font-family:var(--mono);background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.84em}
+
+ul.bul{margin:10px 0;padding-left:0;list-style:none}
+ul.bul li{position:relative;padding-left:22px;margin:7px 0;color:var(--muted)}
+ul.bul li::before{content:"▸";position:absolute;left:2px;color:var(--accent);font-size:.9em}
+ul.bul li b{color:var(--text)}
+
+/* expandable detail */
+details.detail{margin:12px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--ground-2);overflow:hidden}
+details.detail > summary{
+  cursor:pointer;list-style:none;padding:12px 16px;font-family:var(--mono);font-size:.84rem;
+  color:var(--accent);display:flex;align-items:center;gap:10px;user-select:none;
+}
+details.detail > summary::-webkit-details-marker{display:none}
+details.detail > summary::before{content:"▼";font-size:.7em;transition:.2s;color:var(--accent-2)}
+details.detail[open] > summary::before{transform:rotate(-180deg)}
+details.detail > summary:hover{background:rgba(69,200,192,.05)}
+.detail-body{padding:2px 18px 18px;color:var(--muted);font-size:.93rem}
+.detail-body p:first-child{margin-top:6px}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;font-size:.86rem;min-width:380px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--line)}
+thead th{background:var(--surface);color:var(--accent);font-family:var(--mono);font-size:.76rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(69,200,192,.04)}
+td.mono,th.mono{font-family:var(--mono)}
+
+/* formula */
+.formula{font-family:var(--mono);background:var(--ground-2);border:1px solid var(--line);border-left:3px solid var(--accent-2);border-radius:8px;padding:12px 16px;margin:14px 0;font-size:.92rem;overflow-x:auto}
+.formula .hl{color:var(--accent-2)}
+sub,sup{font-size:.72em}
+
+/* callout */
+.note{background:rgba(69,200,192,.07);border:1px solid var(--accent-dim);border-radius:var(--r);padding:12px 16px;margin:14px 0;font-size:.88rem;color:var(--muted)}
+.note b{color:var(--accent)}
+
+/* ---------- widgets ---------- */
+.widget{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin:16px 0}
+.widget .wtitle{font-family:var(--mono);font-size:.78rem;letter-spacing:.1em;color:var(--accent-2);text-transform:uppercase;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.widget .wtitle::before{content:"◆";font-size:.7em}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-family:var(--mono);font-size:.72rem;color:var(--faint);letter-spacing:.05em}
+.fld input,.fld select{
+  background:var(--ground-2);border:1px solid var(--line);border-radius:7px;color:var(--text);
+  padding:7px 10px;font-family:var(--mono);font-size:.9rem;min-width:90px;
+}
+.fld input:focus,.fld select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.btn{
+  font-family:var(--mono);font-size:.82rem;cursor:pointer;border-radius:7px;padding:8px 14px;
+  background:var(--accent);color:#06231f;border:1px solid var(--accent);font-weight:700;transition:.15s;
+}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;color:var(--accent);border-color:var(--accent-dim)}
+.btn.ghost:hover{background:rgba(69,200,192,.08)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:focus-visible,.card:focus-visible,.side a:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+
+.bitrow{display:flex;flex-wrap:wrap;gap:5px;font-family:var(--mono);margin:6px 0}
+.bit{
+  width:30px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:6px;
+  background:var(--ground-2);font-size:.95rem;transition:.15s;
+}
+.bit.one{color:var(--accent);border-color:var(--accent-dim)}
+.bit.zero{color:var(--faint)}
+.bit.carry{background:rgba(240,168,48,.16);border-color:var(--accent-2);color:var(--accent-2)}
+.bit.flip{background:rgba(69,200,192,.16);border-color:var(--accent)}
+.lbl-w{font-family:var(--mono);font-size:.74rem;color:var(--faint);width:118px;flex:none;display:flex;align-items:center}
+
+.readout{font-family:var(--mono);font-size:.9rem;background:var(--ground-2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:12px}
+.readout .k{color:var(--faint)}
+.readout .v{color:var(--text)}
+.tag-hit{color:#06231f;background:var(--good);border-radius:5px;padding:1px 8px;font-weight:700;font-family:var(--mono);font-size:.8rem}
+.tag-miss{color:#2a0d0d;background:var(--bad);border-radius:5px;padding:1px 8px;font-weight:700;font-family:var(--mono);font-size:.8rem}
+
+/* IEEE fields */
+.iefields{display:flex;flex-wrap:wrap;gap:3px;font-family:var(--mono);margin-top:12px}
+.iebit{width:20px;height:30px;display:grid;place-items:center;border-radius:4px;font-size:.82rem;border:1px solid var(--line)}
+.ie-s{background:rgba(239,111,111,.2);border-color:var(--bad)}
+.ie-e{background:rgba(240,168,48,.18);border-color:var(--accent-2)}
+.ie-m{background:rgba(69,200,192,.16);border-color:var(--accent-dim)}
+.ielegend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:.74rem;margin-top:10px;color:var(--muted)}
+.ielegend span{display:flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* datapath svg */
+.svg-wrap{overflow-x:auto;background:var(--ground-2);border:1px solid var(--line);border-radius:var(--r);padding:6px}
+svg.datapath{display:block;min-width:680px;width:100%;height:auto;font-family:var(--mono)}
+.dp-box{fill:var(--surface);stroke:var(--line);stroke-width:1.4;transition:.2s}
+.dp-box.active{fill:var(--surface-2);stroke:var(--accent-2);stroke-width:2.2}
+.dp-lbl{fill:var(--muted);font-size:11px;transition:.2s}
+.dp-box.active + .dp-lbl,.dp-lbl.active{fill:var(--text)}
+.dp-wire{stroke:var(--line);stroke-width:2;fill:none;transition:.2s}
+.dp-wire.active{stroke:var(--accent-2);stroke-width:3}
+.dp-arrow{fill:var(--line)}
+.dp-wire.active ~ .dp-arrow{fill:var(--accent-2)}
+
+/* pipeline grid */
+.pipe-grid{overflow-x:auto}
+.pipe-table{border-collapse:separate;border-spacing:4px;font-family:var(--mono);font-size:.78rem;min-width:560px}
+.pipe-table td,.pipe-table th{padding:0;text-align:center}
+.pipe-table th{color:var(--faint);font-weight:500;padding:2px 4px}
+.pipe-table td.lbl{color:var(--accent);text-align:right;padding-right:8px;white-space:nowrap}
+.stage{width:46px;height:32px;line-height:32px;border-radius:6px;border:1px solid transparent}
+.st-IF{background:rgba(69,200,192,.18);border-color:var(--accent-dim);color:var(--accent)}
+.st-ID{background:rgba(95,208,138,.16);border-color:#39794f;color:var(--good)}
+.st-EX{background:rgba(240,168,48,.18);border-color:var(--accent-2-dim);color:var(--accent-2)}
+.st-MEM{background:rgba(96,160,232,.16);border-color:#356089;color:#7fb3ee}
+.st-WB{background:rgba(200,120,232,.16);border-color:#6d4585;color:#c79be0}
+.st-bub{background:repeating-linear-gradient(45deg,rgba(239,111,111,.12),rgba(239,111,111,.12) 5px,transparent 5px,transparent 10px);border:1px dashed var(--bad);color:var(--bad)}
+.fwd-line{color:var(--accent-2);font-size:.74rem;margin-top:10px;font-family:var(--mono)}
+
+/* pyramid */
+.pyramid{display:flex;flex-direction:column;align-items:center;gap:6px;margin:14px 0}
+.pyr-layer{
+  cursor:pointer;border:1px solid var(--line);border-radius:8px;padding:10px 14px;text-align:center;
+  font-family:var(--mono);font-size:.82rem;transition:.18s;background:var(--surface);color:var(--muted);
+}
+.pyr-layer:hover{border-color:var(--accent)}
+.pyr-layer.sel{border-color:var(--accent-2);background:var(--surface-2);color:var(--text)}
+.pyr-layer b{color:var(--text)}
+.pyr-info{font-family:var(--mono);font-size:.84rem;background:var(--ground-2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:8px;min-height:48px}
+
+footer{border-top:1px solid var(--line);margin-top:80px;padding:30px 0;color:var(--faint);font-size:.82rem;font-family:var(--mono)}
+
+/* mobile */
+.menu-btn{display:none}
+@media(max-width:860px){
+  .shell{grid-template-columns:1fr}
+  nav.side{position:fixed;z-index:30;width:268px;transform:translateX(-100%);transition:.25s;box-shadow:0 0 40px rgba(0,0,0,.5)}
+  nav.side.open{transform:none}
+  .menu-btn{
+    display:flex;align-items:center;gap:8px;position:fixed;z-index:31;top:14px;right:14px;
+    background:var(--surface);border:1px solid var(--accent-dim);color:var(--accent);border-radius:8px;
+    padding:8px 12px;font-family:var(--mono);font-size:.8rem;cursor:pointer;
+  }
+  main{padding-top:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  #trace-canvas{display:none}
+  *{transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn" aria-label="開啟章節選單">☰ 章節</button>
+
+<div class="shell">
+<nav class="side" id="side">
+  <div class="brand">Computer Organization<b>計算機結構學</b></div>
+  <div class="subjnav">
+    <div class="stitle">科目 Subjects</div>
+    <a class="lnk" href="index.html">⌂ 所有科目</a>
+    <a class="lnk subj-cur" href="architecture.html">計算機結構學</a>
+    <a class="lnk" href="ai.html">人工智慧導論</a>
+  </div>
+  <ol>
+    <li><a class="lnk" href="#top">總覽 Overview</a></li>
+    <li class="grp">CH3 · Arithmetic</li>
+    <li><a class="lnk" href="#c3-twoc">二補數與溢位</a></li>
+    <li><a class="lnk" href="#c3-alu">ALU 設計</a></li>
+    <li><a class="lnk" href="#c3-cla">Carry Lookahead</a></li>
+    <li><a class="lnk" href="#c3-mul">乘法器</a></li>
+    <li><a class="lnk" href="#c3-booth">Booth 演算法</a></li>
+    <li><a class="lnk" href="#c3-fp">除法與浮點數</a></li>
+    <li class="grp">CH4 · The Processor</li>
+    <li><a class="lnk" href="#c4-exec">指令執行步驟</a></li>
+    <li><a class="lnk" href="#c4-datapath">單週期資料路徑</a></li>
+    <li><a class="lnk" href="#c4-control">控制訊號</a></li>
+    <li><a class="lnk" href="#c4-pipe">管線化 Pipelining</a></li>
+    <li><a class="lnk" href="#c4-hazard">危障與前送</a></li>
+    <li class="grp">CH5 · Memory</li>
+    <li><a class="lnk" href="#c5-locality">局部性原理</a></li>
+    <li><a class="lnk" href="#c5-tech">記憶體技術</a></li>
+    <li><a class="lnk" href="#c5-cache">Cache 與對映</a></li>
+    <li><a class="lnk" href="#c5-vm">虛擬記憶體</a></li>
+  </ol>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="top">
+  <canvas id="trace-canvas" aria-hidden="true"></canvas>
+  <div class="inner">
+    <span class="eyebrow">Patterson &amp; Hennessy · MIPS · Ch 3–5</span>
+    <h1>從一個位元到整台機器
+      <span class="sub">資料怎麼在 ALU、資料路徑與記憶體階層中流動</span>
+    </h1>
+    <p class="lead">這份教材把「計算機結構學」三大主題串成一條路徑：先讓 CPU 會算數（算術運算），
+    再把零件接成會跑指令的處理器（資料路徑與管線），最後解決「記憶體太慢」的問題（記憶體階層）。
+    每個觀念都配了可以動手操作的小工具——按一下，看資料怎麼動。</p>
+    <p class="howto">使用方式 · 左側導覽跳章 → 讀重點 → 點開「▼ 詳解」看推導 → 操作 ◆ 互動工具驗證理解</p>
+
+    <div class="cards">
+      <a class="card" href="#c3-twoc"><span class="n">CHAPTER 3</span><h3>Arithmetic 算術運算</h3><p>二補數、溢位、ALU、進位預看、乘法、Booth、IEEE-754 浮點數</p></a>
+      <a class="card" href="#c4-exec"><span class="n">CHAPTER 4</span><h3>The Processor 處理器</h3><p>指令執行、單週期資料路徑、控制訊號、五級管線、危障與前送</p></a>
+      <a class="card" href="#c5-locality"><span class="n">CHAPTER 5</span><h3>Memory 記憶體階層</h3><p>局部性、SRAM/DRAM/Disk、Cache 對映、寫入策略、虛擬記憶體</p></a>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================ CH3 -->
+<section class="chapter" id="ch3">
+  <div class="ch-head">
+    <span class="eyebrow">Chapter 3</span>
+    <h2>Arithmetic for Computers <span class="en">算術運算</span></h2>
+    <p class="ch-intro">電腦的本質是「會算數的開關」。這一章從「數字怎麼用位元表示」開始，一路把加減、比較、乘除、
+    浮點數做成硬體。核心問題只有兩個：<b>怎麼算得對</b>（溢位、有號數）與 <b>怎麼算得快</b>（進位預看、Booth）。</p>
+  </div>
+
+  <!-- 3.1 two's complement -->
+  <div class="topic" id="c3-twoc">
+    <h3><span class="tag">3.1</span>有號數與二補數</h3>
+    <p>電腦用固定位元數存整數。<strong class="term">二補數 (two's complement)</strong> 是最常見的有號表示法：最高位是符號位，
+    負數 = 把正數每位元反相後 <code>+1</code>。它的好處是<b>加減法用同一套加法器就能做</b>，且 0 只有一種表示。</p>
+    <ul class="bul">
+      <li><b>範圍</b>：<code>n</code> 位元可表示 <code>−2<sup>n−1</sup></code> 到 <code>2<sup>n−1</sup>−1</code>（8 位元為 −128～127）。</li>
+      <li><b>符號延伸 (sign extension)</b>：把短數字放進長暫存器時，複製符號位填滿高位，數值不變（<code>lb</code>、<code>addi</code> 都會用到）。</li>
+      <li><b>取負</b>：<code>−x = ~x + 1</code>。這也是減法 <code>A − B = A + (~B) + 1</code> 的由來。</li>
+    </ul>
+    <details class="detail"><summary>詳解：為什麼「反相加一」就是負數？</summary>
+      <div class="detail-body">
+        <p>二補數的定義是把最高位的權重設成負的：對 8 位元，值 = <code>−b<sub>7</sub>·2<sup>7</sup> + b<sub>6</sub>·2<sup>6</sup> + … + b<sub>0</sub>·2<sup>0</sup></code>。</p>
+        <p>觀察 <code>x + ~x = 1111…1 = −1</code>（全部是 1 的二補數正好是 −1）。移項得 <code>~x = −1 − x</code>，所以 <code>~x + 1 = −x</code>。這就是取負的公式，完全不需要特別的「減法器」。</p>
+        <p>下面的工具用 8 位元二補數做加法，逐位顯示進位，並判斷是否溢位。</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- 3.2 overflow -->
+  <div class="topic">
+    <h3><span class="tag">3.2</span>加減法與溢位偵測</h3>
+    <p>溢位 (<strong class="term">overflow</strong>) 指運算結果超出可表示範圍。重點：<b>只有同號相加、或異號相減</b>才可能溢位；
+    無號數則看最高位是否進位。硬體判斷法：<b>進入最高位的進位 ≠ 離開最高位的進位</b> 即溢位。</p>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>運算</th><th>運算元 A,B 符號</th><th>結果符號異常時</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">A + B</td><td>A≥0, B≥0</td><td>結果 &lt; 0 → 溢位</td></tr>
+        <tr><td class="mono">A + B</td><td>A&lt;0, B&lt;0</td><td>結果 ≥ 0 → 溢位</td></tr>
+        <tr><td class="mono">A − B</td><td>A≥0, B&lt;0</td><td>結果 &lt; 0 → 溢位</td></tr>
+        <tr><td class="mono">A − B</td><td>A&lt;0, B≥0</td><td>結果 ≥ 0 → 溢位</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="note"><b>MIPS：</b><code>add / sub / addi</code> 會偵測溢位並丟例外；<code>addu / subu / addiu</code> 不偵測。所以 C 編譯器多半用 <code>u</code> 版本。</div>
+
+    <div class="widget" id="w-add">
+      <p class="wtitle">互動：二補數加法 / 溢位視覺化</p>
+      <div class="controls">
+        <div class="fld"><label>A (−128～127)</label><input id="addA" type="number" value="100" min="-128" max="127"></div>
+        <div class="fld"><label>運算</label><select id="addOp"><option value="add">A + B</option><option value="sub">A − B</option></select></div>
+        <div class="fld"><label>B (−128～127)</label><input id="addB" type="number" value="50" min="-128" max="127"></div>
+        <button class="btn" id="addGo">計算</button>
+      </div>
+      <div id="addRows"></div>
+      <div class="readout" id="addOut"></div>
+    </div>
+  </div>
+
+  <!-- 3.3 ALU -->
+  <div class="topic" id="c3-alu">
+    <h3><span class="tag">3.3</span>從 1-bit ALU 到 32-bit ALU</h3>
+    <p><strong class="term">ALU (Arithmetic Logic Unit)</strong> 是 CPU 的計算核心。先做出 1 位元 ALU（含 AND、OR、全加器，再用
+    <strong class="term">多工器 (MUX)</strong> 選輸出），把 32 個串起來就是 32 位元 ALU。</p>
+    <ul class="bul">
+      <li><b>全加器 (full adder)</b>：3 進 2 出。<code>Sum = A⊕B⊕Cin</code>，<code>Cout = AB + (A⊕B)·Cin</code>。</li>
+      <li><b>減法</b>：把 B 反相（Binvert=1）並設最低位 <code>CarryIn=1</code>，等於做 <code>A + ~B + 1</code>。</li>
+      <li><b>slt (set less than)</b>：用 <code>A − B</code> 的符號位（最高位）回送到最低位的 <code>Less</code> 輸入，結果是 0 或 1。</li>
+      <li><b>相等比較 (beq)</b>：算 <code>A − B</code>，用 NOR 把所有結果位元 OR 起來；全 0 代表相等（<code>Zero</code> 訊號）。</li>
+    </ul>
+    <details class="detail"><summary>詳解：一個 1-bit ALU 裡有什麼？</summary>
+      <div class="detail-body">
+        <p>每個 1-bit ALU 接收 <code>a</code>、<code>b</code>、<code>CarryIn</code> 與一組控制線：</p>
+        <ul class="bul">
+          <li><code>Ainvert / Binvert</code>：決定是否反相輸入（做 NAND/NOR/減法）。</li>
+          <li><code>Operation (2 bit)</code>：MUX 選擇要輸出 AND(00)、OR(01)、Add(10) 還是 Less(11)。</li>
+        </ul>
+        <p>32 顆串成漣波，最低位的 <code>CarryIn</code> 接 Binvert（減法時 = 1），最高位的 ALU 多輸出一條 <code>Set</code> 給 slt，以及 <code>Overflow</code> 偵測。整顆 ALU 的控制線合稱 <code>ALU control (4 bit)</code>，由 Chapter 4 的控制單元產生。</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- 3.4 CLA -->
+  <div class="topic" id="c3-cla">
+    <h3><span class="tag">3.4</span>進位預看加法器 Carry Lookahead</h3>
+    <p>把 32 顆 1-bit 加法器直接串起來叫 <strong class="term">漣波進位 (ripple-carry)</strong>：進位要一位一位傳，最長路徑是 <code>n</code> 倍閘延遲——太慢。
+    <strong class="term">Carry Lookahead Adder (CLA)</strong> 用「先算進位」的技巧把延遲壓到 <code>O(log n)</code> 等級。</p>
+    <div class="formula">
+      generate　<span class="hl">g<sub>i</sub></span> = a<sub>i</sub> · b<sub>i</sub>　　（兩個都是 1，一定產生進位）<br>
+      propagate <span class="hl">p<sub>i</sub></span> = a<sub>i</sub> + b<sub>i</sub>　（至少一個是 1，會把進位往上傳）<br>
+      <br>
+      c<sub>1</sub> = g<sub>0</sub> + p<sub>0</sub>·c<sub>0</sub><br>
+      c<sub>2</sub> = g<sub>1</sub> + p<sub>1</sub>g<sub>0</sub> + p<sub>1</sub>p<sub>0</sub>c<sub>0</sub><br>
+      c<sub>3</sub> = g<sub>2</sub> + p<sub>2</sub>g<sub>1</sub> + p<sub>2</sub>p<sub>1</sub>g<sub>0</sub> + p<sub>2</sub>p<sub>1</sub>p<sub>0</sub>c<sub>0</sub><br>
+      c<sub>4</sub> = …（每個進位都只用 g、p、c<sub>0</sub> 直接算，不必等前一級）
+    </div>
+    <ul class="bul">
+      <li><b>兩層架構</b>：4-bit CLA 為一塊，再用區塊級的 <code>G、P</code> 把多塊組成 16-bit / 32-bit，形成階層式預看。</li>
+      <li><b>區塊 generate</b>：<code>G = g<sub>3</sub> + p<sub>3</sub>g<sub>2</sub> + p<sub>3</sub>p<sub>2</sub>g<sub>1</sub> + p<sub>3</sub>p<sub>2</sub>p<sub>1</sub>g<sub>0</sub></code>，區塊 <code>P = p<sub>3</sub>p<sub>2</sub>p<sub>1</sub>p<sub>0</sub></code>。</li>
+      <li><b>取捨</b>：CLA 快但邏輯閘多、佈線複雜；實務常用混合（局部 CLA + 區塊漣波）。</li>
+    </ul>
+  </div>
+
+  <!-- 3.5 multiply -->
+  <div class="topic" id="c3-mul">
+    <h3><span class="tag">3.5</span>乘法器 Multiplication</h3>
+    <p>紙筆乘法 = 對每個乘數位元，決定要不要加上被乘數，然後左移。硬體把這流程做成「<b>加 → 位移 → 重複</b>」的迴圈。
+    課程演進三個版本，逐步把浪費的硬體砍掉：</p>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>版本</th><th>做法</th><th>改良</th></tr></thead>
+      <tbody>
+        <tr><td>Ver 1</td><td>被乘數左移、64-bit ALU、Product 64-bit</td><td>直觀但一半 ALU 在算 0，浪費</td></tr>
+        <tr><td>Ver 2</td><td>被乘數不動，改成 <b>Product 右移</b>、32-bit ALU</td><td>ALU 縮一半</td></tr>
+        <tr><td>Ver 3</td><td><b>乘數塞進 Product 低位</b>，省掉乘數暫存器</td><td>對應 MIPS 的 <code>Hi/Lo</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>每一輪：<b>① 測 Product 最低位</b>，是 1 就把被乘數加到 Product 高半部；<b>② Product 整體右移 1 位</b>。重複 <code>n</code> 次。</p>
+
+    <div class="widget" id="w-mul">
+      <p class="wtitle">互動：乘法逐步器（4-bit 無號 · Ver 3）</p>
+      <div class="controls">
+        <div class="fld"><label>被乘數 Multiplicand</label><input id="mulM" type="number" value="2" min="0" max="15"></div>
+        <div class="fld"><label>乘數 Multiplier</label><input id="mulQ" type="number" value="3" min="0" max="15"></div>
+        <button class="btn" id="mulInit">載入</button>
+        <button class="btn ghost" id="mulStep">下一步 ▶</button>
+        <button class="btn ghost" id="mulAuto">自動跑完</button>
+      </div>
+      <div class="tbl-wrap">
+      <table id="mulTbl">
+        <thead><tr><th>步驟</th><th>動作</th><th class="mono">Product (高 4 / 低 4)</th><th class="mono">Multiplicand</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      </div>
+      <div class="readout" id="mulOut">按「載入」開始。</div>
+    </div>
+  </div>
+
+  <!-- 3.6 booth -->
+  <div class="topic" id="c3-booth">
+    <h3><span class="tag">3.6</span>Booth 演算法（有號數乘法）</h3>
+    <p>無號乘法器遇到負數會出錯。<strong class="term">Booth's Algorithm</strong> 用同一套硬體處理有號數，技巧是把
+    「一長串連續的 1」用<b>一次減、一次加</b>取代多次加法（因為 <code>0111…1 = 1000…0 − 1</code>）。</p>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th class="mono">目前位</th><th class="mono">右邊位</th><th>含義</th><th>動作</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1</td><td class="mono">0</td><td>一串 1 的開頭</td><td>高半部 <b>減</b> 被乘數</td></tr>
+        <tr><td class="mono">1</td><td class="mono">1</td><td>一串 1 的中間</td><td>不動</td></tr>
+        <tr><td class="mono">0</td><td class="mono">1</td><td>一串 1 的結尾</td><td>高半部 <b>加</b> 被乘數</td></tr>
+        <tr><td class="mono">0</td><td class="mono">0</td><td>一串 0 的中間</td><td>不動</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>每輪做完動作後，對 [高半部 | 乘數 | 額外位] 做<b>算術右移</b>（保留符號位）。下面用課本範例 <code>2 × 7</code> 逐步示範。</p>
+
+    <div class="widget" id="w-booth">
+      <p class="wtitle">互動：Booth 逐步器（4-bit 有號）</p>
+      <div class="controls">
+        <div class="fld"><label>被乘數 M (−7～7)</label><input id="boM" type="number" value="2" min="-7" max="7"></div>
+        <div class="fld"><label>乘數 Q (−8～7)</label><input id="boQ" type="number" value="7" min="-8" max="7"></div>
+        <button class="btn" id="boInit">載入</button>
+        <button class="btn ghost" id="boStep">下一步 ▶</button>
+        <button class="btn ghost" id="boAuto">自動跑完</button>
+      </div>
+      <div class="tbl-wrap">
+      <table id="boTbl">
+        <thead><tr><th>步驟</th><th class="mono">A</th><th class="mono">Q</th><th class="mono">Q-1</th><th>判斷 → 動作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      </div>
+      <div class="readout" id="boOut">按「載入」開始。</div>
+    </div>
+  </div>
+
+  <!-- 3.7 fp -->
+  <div class="topic" id="c3-fp">
+    <h3><span class="tag">3.7</span>除法與 IEEE-754 浮點數</h3>
+    <p><b>除法</b>與乘法對稱：用「<b>減 → 位移 → 看餘數正負決定上商</b>」的迴圈（restoring / non-restoring division），
+    MIPS 的商與餘數一樣放在 <code>Hi/Lo</code>。</p>
+    <p><strong class="term">IEEE-754</strong> 是浮點數的標準格式：<code>(−1)<sup>S</sup> × 1.M × 2<sup>(E−bias)</sup></code>。
+    指數用 <b>bias</b> 表示（單精度 127、雙精度 1023），尾數隱含一個「1.」。</p>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>格式</th><th>總位元</th><th>Sign</th><th>Exponent</th><th>Mantissa</th><th>bias</th></tr></thead>
+      <tbody>
+        <tr><td>單精度 float</td><td class="mono">32</td><td class="mono">1</td><td class="mono">8</td><td class="mono">23</td><td class="mono">127</td></tr>
+        <tr><td>雙精度 double</td><td class="mono">64</td><td class="mono">1</td><td class="mono">11</td><td class="mono">52</td><td class="mono">1023</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="widget" id="w-ieee">
+      <p class="wtitle">互動：IEEE-754 單精度拆解器</p>
+      <div class="controls">
+        <div class="fld"><label>十進位數值</label><input id="ieIn" type="number" value="-6.25" step="any"></div>
+        <button class="btn" id="ieGo">拆解</button>
+      </div>
+      <div class="iefields" id="ieBits"></div>
+      <div class="ielegend">
+        <span><i class="sw" style="background:var(--bad)"></i>Sign (1)</span>
+        <span><i class="sw" style="background:var(--accent-2)"></i>Exponent (8)</span>
+        <span><i class="sw" style="background:var(--accent)"></i>Mantissa (23)</span>
+      </div>
+      <div class="readout" id="ieOut" style="margin-top:12px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ CH4 -->
+<section class="chapter" id="ch4">
+  <div class="ch-head">
+    <span class="eyebrow">Chapter 4</span>
+    <h2>The Processor <span class="en">處理器</span></h2>
+    <p class="ch-intro">有了會算數的 ALU，接著要把記憶體、暫存器、ALU 接成能<b>自動執行指令</b>的處理器。
+    先學最直覺的「單週期」設計，再用「管線」把效能拉高——而管線帶來的麻煩（危障）正是本章重頭戲。</p>
+  </div>
+
+  <!-- 4.1 exec steps -->
+  <div class="topic" id="c4-exec">
+    <h3><span class="tag">4.1</span>指令執行的五大步驟</h3>
+    <p>不論哪種指令，MIPS 都可拆成五個階段，這也正是後面五級管線的由來：</p>
+    <ul class="bul">
+      <li><b>IF (Instruction Fetch)</b>：用 <code>PC</code> 從指令記憶體取指令，<code>PC ← PC + 4</code>。</li>
+      <li><b>ID (Instruction Decode)</b>：解碼，讀暫存器檔的兩個來源暫存器，符號延伸 immediate。</li>
+      <li><b>EX (Execute)</b>：ALU 運算——算結果 / 算記憶體位址 / 算分支目標。</li>
+      <li><b>MEM (Memory access)</b>：只有 <code>lw / sw</code> 會存取資料記憶體。</li>
+      <li><b>WB (Write Back)</b>：把結果寫回暫存器檔。</li>
+    </ul>
+    <div class="note"><b>三類指令：</b>算術邏輯 <code>add, sub, and, or, slt</code>；記憶體 <code>lw, sw</code>；控制轉移 <code>beq, j</code>。它們走的路徑不同，但共用同一組硬體。</div>
+  </div>
+
+  <!-- 4.2 datapath -->
+  <div class="topic" id="c4-datapath">
+    <h3><span class="tag">4.2</span>單週期資料路徑 Single-cycle Datapath</h3>
+    <p>把上述零件用線接起來就是<strong class="term">資料路徑 (datapath)</strong>。單週期 = 每條指令在<b>一個時脈週期內</b>走完全程。
+    下面選不同指令，看它<b>實際用到哪些零件與線路</b>（亮起 = 啟用），右側對應的控制訊號也會跟著變。</p>
+
+    <div class="widget" id="w-dp">
+      <p class="wtitle">互動：單週期資料路徑（選指令看資料流）</p>
+      <div class="controls">
+        <div class="fld"><label>指令類型</label>
+          <select id="dpSel">
+            <option value="r">R-type（add / sub / slt）</option>
+            <option value="lw">lw（load word）</option>
+            <option value="sw">sw（store word）</option>
+            <option value="beq">beq（branch if equal）</option>
+          </select>
+        </div>
+      </div>
+      <div class="svg-wrap">
+        <svg class="datapath" viewBox="0 0 720 300" id="dpSvg" role="img" aria-label="MIPS 單週期資料路徑">
+          <!-- wires (draw first, under boxes) -->
+          <path class="dp-wire" data-w="pc_im" d="M70 150 H110"/>
+          <path class="dp-wire" data-w="im_reg" d="M195 130 H300"/>
+          <path class="dp-wire" data-w="im_se" d="M195 250 H300"/>
+          <path class="dp-wire" data-w="reg_alu" d="M385 120 H470"/>
+          <path class="dp-wire" data-w="reg_alub" d="M385 160 H440 V150 H470"/>
+          <path class="dp-wire" data-w="se_alu" d="M385 250 H450 V165 H470"/>
+          <path class="dp-wire" data-w="alu_dm" d="M540 140 H600"/>
+          <path class="dp-wire" data-w="dm_wb" d="M685 140 H700 V285 H250 V160 H300"/>
+          <path class="dp-wire" data-w="alu_wb" d="M540 150 H560 V275 H240 V150 H300"/>
+          <path class="dp-wire" data-w="branch" d="M540 110 H560 V60 H120 V135 H110"/>
+          <!-- boxes -->
+          <g><rect class="dp-box" data-b="pc" x="30" y="132" width="40" height="36" rx="5"/><text class="dp-lbl" x="50" y="155" text-anchor="middle">PC</text></g>
+          <g><rect class="dp-box" data-b="im" x="110" y="115" width="85" height="70" rx="6"/><text class="dp-lbl" x="152" y="145" text-anchor="middle">Instruction</text><text class="dp-lbl" x="152" y="160" text-anchor="middle">Memory</text></g>
+          <g><rect class="dp-box" data-b="reg" x="300" y="100" width="85" height="80" rx="6"/><text class="dp-lbl" x="342" y="135" text-anchor="middle">Registers</text><text class="dp-lbl" x="342" y="150" text-anchor="middle">暫存器檔</text></g>
+          <g><rect class="dp-box" data-b="se" x="300" y="232" width="85" height="36" rx="6"/><text class="dp-lbl" x="342" y="254" text-anchor="middle">Sign-Extend</text></g>
+          <g><polygon class="dp-box" data-b="alu" points="470,108 510,122 510,168 470,182 470,150 485,145 470,140"/><text class="dp-lbl" x="488" y="148" text-anchor="middle">ALU</text></g>
+          <g><rect class="dp-box" data-b="dm" x="600" y="110" width="85" height="60" rx="6"/><text class="dp-lbl" x="642" y="135" text-anchor="middle">Data</text><text class="dp-lbl" x="642" y="150" text-anchor="middle">Memory</text></g>
+          <g><rect class="dp-box" data-b="branch" x="120" y="40" width="120" height="26" rx="6" style="fill:none"/><text class="dp-lbl" x="180" y="57" text-anchor="middle">+ branch target → PC</text></g>
+        </svg>
+      </div>
+      <div class="readout" id="dpOut"></div>
+      <div class="tbl-wrap" style="margin-top:10px">
+        <table id="dpCtrl">
+          <thead><tr><th class="mono">RegDst</th><th class="mono">ALUSrc</th><th class="mono">MemRead</th><th class="mono">MemWrite</th><th class="mono">MemtoReg</th><th class="mono">RegWrite</th><th class="mono">Branch</th></tr></thead>
+          <tbody><tr id="dpCtrlRow"></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.3 control -->
+  <div class="topic" id="c4-control">
+    <h3><span class="tag">4.3</span>控制訊號 Control Signals</h3>
+    <p><strong class="term">控制單元 (control unit)</strong> 解碼指令的 opcode，產生上面那排控制線去「指揮」MUX、記憶體與暫存器讀寫。常見訊號：</p>
+    <ul class="bul">
+      <li><code>RegDst</code>：寫回的暫存器編號來自 <code>rt</code>(0) 還是 <code>rd</code>(1)。</li>
+      <li><code>ALUSrc</code>：ALU 第二運算元來自暫存器(0) 還是符號延伸的 immediate(1)。</li>
+      <li><code>MemRead / MemWrite</code>：是否讀 / 寫資料記憶體。</li>
+      <li><code>MemtoReg</code>：寫回的值來自 ALU(0) 還是資料記憶體(1)。</li>
+      <li><code>RegWrite</code>：是否寫回暫存器；<code>Branch</code>：是否為分支（搭配 <code>Zero</code> 決定是否跳）。</li>
+      <li><code>ALUOp</code>：兩位元，配合 funct 欄位由 <b>ALU control</b> 產生真正的 4-bit ALU 控制。</li>
+    </ul>
+  </div>
+
+  <!-- 4.4 pipelining -->
+  <div class="topic" id="c4-pipe">
+    <h3><span class="tag">4.4</span>管線化 Pipelining</h3>
+    <p>單週期的缺點：時脈被最慢的指令（<code>lw</code>）綁死。<strong class="term">管線 (pipeline)</strong> 像洗衣店流水線——
+    把指令切成五級，讓不同指令的不同階段<b>同時進行</b>。它不縮短單一指令的時間，而是大幅提高<b>吞吐量 (throughput)</b>。</p>
+    <div class="formula">理想加速比 ≈ <span class="hl">管線級數</span>（這裡 = 5）<br>條件：各級時間均衡、且沒有危障 (hazard) 造成停頓</div>
+    <ul class="bul">
+      <li>級與級之間插入<b>管線暫存器</b>（IF/ID、ID/EX、EX/MEM、MEM/WB）保存中間狀態。</li>
+      <li>穩定狀態下每個時脈完成一條指令（CPI → 1），但啟動有「填管線」的延遲。</li>
+    </ul>
+  </div>
+
+  <!-- 4.5 hazards -->
+  <div class="topic" id="c4-hazard">
+    <h3><span class="tag">4.5</span>危障 Hazards 與前送 Forwarding</h3>
+    <p>管線重疊執行會產生<strong class="term">危障 (hazard)</strong>——三種：</p>
+    <ul class="bul">
+      <li><b>結構危障 (structural)</b>：硬體資源不夠用（例如同一個記憶體同時要取指令又要讀資料）。解法：指令/資料記憶體分開。</li>
+      <li><b>資料危障 (data)</b>：後面指令要用前面還沒寫回的結果。解法：<b>前送 (forwarding)</b> 把 ALU 結果直接送回去；<code>lw</code> 之後仍需 1 個 <b>停頓 (stall / bubble)</b>。</li>
+      <li><b>控制危障 (control)</b>：分支要等條件算完才知道跳不跳。解法：分支預測 (branch prediction)、提早判斷分支。</li>
+    </ul>
+    <p>下面比較同一段相依指令在「只能停頓」與「有前送」下的管線時序差異：</p>
+
+    <div class="widget" id="w-pipe">
+      <p class="wtitle">互動：管線時序圖（資料危障的解法對照）</p>
+      <div class="controls">
+        <div class="fld"><label>情境</label>
+          <select id="pipeSel">
+            <option value="ideal">無相依（理想重疊）</option>
+            <option value="stall">資料危障 · 只用停頓 (stall)</option>
+            <option value="forward">資料危障 · 有前送 (forwarding)</option>
+            <option value="loaduse">load-use 危障（前送仍需 1 停頓）</option>
+          </select>
+        </div>
+      </div>
+      <div class="pipe-grid">
+        <table class="pipe-table" id="pipeTbl"></table>
+      </div>
+      <div class="fwd-line" id="pipeNote"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ CH5 -->
+<section class="chapter" id="ch5">
+  <div class="ch-head">
+    <span class="eyebrow">Chapter 5</span>
+    <h2>Memory Hierarchy <span class="en">記憶體階層</span></h2>
+    <p class="ch-intro">處理器越來越快，記憶體卻沒跟上（CPU-DRAM gap）。解法不是做一個又快又大又便宜的記憶體（不存在），
+    而是疊出一個<b>階層</b>：用小而快的擋在前面，大而慢的放後面，靠<b>局部性</b>讓多數存取都打中快的那層。</p>
+  </div>
+
+  <!-- 5.1 locality -->
+  <div class="topic" id="c5-locality">
+    <h3><span class="tag">5.1</span>局部性原理 Principle of Locality</h3>
+    <p>程式的記憶體存取不是隨機的，而有<strong class="term">局部性 (locality)</strong>——這是整個記憶體階層能成立的關鍵：</p>
+    <ul class="bul">
+      <li><b>時間局部性 (temporal)</b>：剛用過的東西，很可能馬上又用（迴圈變數、指令）。</li>
+      <li><b>空間局部性 (spatial)</b>：用了某位址，附近的位址也很可能被用（陣列、循序指令）。</li>
+    </ul>
+    <p>因此把資料以<b>區塊 (block / line)</b> 為單位，從慢的層搬到快的層，就能用少量快記憶體服務大多數存取。</p>
+
+    <div class="widget" id="w-pyr">
+      <p class="wtitle">互動：記憶體階層金字塔（點各層看特性）</p>
+      <div class="pyramid" id="pyr"></div>
+      <div class="pyr-info" id="pyrInfo">點選任一層查看速度、容量與成本特性。</div>
+    </div>
+  </div>
+
+  <!-- 5.2 tech -->
+  <div class="topic" id="c5-tech">
+    <h3><span class="tag">5.2</span>記憶體技術 SRAM / DRAM / Disk</h3>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>技術</th><th>原理</th><th>速度</th><th>每 GB 成本</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><b>SRAM</b></td><td>正反器（6 顆電晶體/bit），不需更新</td><td class="mono">最快 (~1ns)</td><td class="mono">最貴</td><td>Cache</td></tr>
+        <tr><td><b>DRAM</b></td><td>電容存電荷（1T/bit），需週期性 refresh</td><td class="mono">中 (~50ns)</td><td class="mono">中</td><td>主記憶體</td></tr>
+        <tr><td><b>Flash / Disk</b></td><td>非揮發；磁碟有機械尋軌</td><td class="mono">最慢 (µs~ms)</td><td class="mono">最便宜</td><td>儲存</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <ul class="bul">
+      <li><b>理想記憶體</b>：SRAM 的速度 + Disk 的容量與成本——做不到，所以才需要階層。</li>
+      <li>DRAM 以<b>列 (row)</b> 為單位讀取整列；<code>DDR / QDR</code> 在時脈邊緣多次傳資料來提高頻寬。</li>
+    </ul>
+  </div>
+
+  <!-- 5.3 cache -->
+  <div class="topic" id="c5-cache">
+    <h3><span class="tag">5.3</span>Cache 基礎與對映方式</h3>
+    <p>Cache 是 CPU 與主記憶體之間的小型 SRAM。一次存取若在 cache 找到叫 <strong class="term">命中 (hit)</strong>，找不到叫 <strong class="term">失誤 (miss)</strong>，要從下層搬一個區塊上來（付出 <b>miss penalty</b>）。</p>
+    <div class="formula">
+      hit ratio = hits / accesses　　miss ratio = 1 − hit ratio<br>
+      平均存取時間 AMAT = <span class="hl">hit time</span> + miss ratio × <span class="hl">miss penalty</span>
+    </div>
+    <p>位址被切成三段來定位：</p>
+    <div class="formula">［　<span class="hl">Tag</span>　｜　<span class="hl">Index</span>（選哪一行）｜　<span class="hl">Offset</span>（區塊內位元組）　］</div>
+    <ul class="bul">
+      <li><b>直接對映 (direct-mapped)</b>：每個記憶體區塊只能放在固定一行（<code>index = 區塊號 mod 行數</code>）。簡單但易衝突。</li>
+      <li><b>組相聯 (set-associative)</b>：每組有 N 行，區塊可放組內任一行，衝突變少。</li>
+      <li><b>全相聯 (fully-associative)</b>：可放任意行，最少衝突但比對成本最高。</li>
+      <li><b>寫入策略</b>：<code>write-through</code>（同時寫下層）vs <code>write-back</code>（只寫 cache，靠 <b>dirty bit</b> 標記，換出時才寫回）；<code>valid bit</code> 標記該行是否有效。</li>
+    </ul>
+
+    <div class="widget" id="w-cache">
+      <p class="wtitle">互動：直接對映 Cache 模擬器</p>
+      <p style="font-size:.84rem;color:var(--muted);margin:0 0 12px">設定：4 行、每行 1 個字。<code>index = 位址 mod 4</code>，<code>tag = ⌊位址 / 4⌋</code>。輸入一串字位址（用空白或逗號分隔），看每次命中或失誤。</p>
+      <div class="controls">
+        <div class="fld" style="flex:1"><label>存取位址序列</label><input id="caSeq" type="text" value="0 1 2 3 0 1 2 3" style="min-width:220px;width:100%"></div>
+        <button class="btn" id="caGo">模擬</button>
+      </div>
+      <div class="tbl-wrap">
+        <table id="caTbl">
+          <thead><tr><th>#</th><th class="mono">位址</th><th class="mono">二進位</th><th class="mono">Tag</th><th class="mono">Index</th><th>結果</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="readout" id="caOut"></div>
+    </div>
+  </div>
+
+  <!-- 5.4 vm -->
+  <div class="topic" id="c5-vm">
+    <h3><span class="tag">5.4</span>虛擬記憶體 Virtual Memory 與 TLB</h3>
+    <p><strong class="term">虛擬記憶體</strong> 把「主記憶體當成磁碟的 cache」：每個程式以為自己擁有完整連續的位址空間，
+    硬體 + OS 再把<b>虛擬位址</b>翻成<b>實體位址</b>。單位是 <b>page</b>（通常 4KB）。</p>
+    <ul class="bul">
+      <li><b>頁表 (page table)</b>：記錄每個虛擬頁對應的實體頁框；找不到（不在記憶體）叫 <strong class="term">page fault</strong>，要從磁碟搬入。</li>
+      <li><b>TLB (Translation Lookaside Buffer)</b>：頁表的 cache。每次存取要先翻譯位址，若每次都查頁表（在記憶體）太慢，TLB 用小型快取存最近的翻譯。</li>
+      <li>對應關係：cache 的 hit/miss ↔ TLB hit/miss ↔ page fault，都是「上層找不到就往下層拿」的同一個思想。</li>
+    </ul>
+    <div class="note"><b>一條 load 的完整路徑：</b>虛擬位址 → 查 TLB（翻成實體位址）→ 查 cache → 命中就拿資料，失誤就往主記憶體 / 磁碟一路追下去。整個 Chapter 5 就是這條鏈上每一環的最佳化。</div>
+  </div>
+</section>
+
+<footer>
+  <div>計算機結構學 · 互動式學習教材　|　內容依 Patterson &amp; Hennessy《Computer Organization and Design》(MIPS) Ch 3–5 整理</div>
+  <div style="margin-top:6px;color:var(--accent-dim)">離線可用 · 所有互動以瀏覽器本機運算</div>
+</footer>
+
+</div><!-- /wrap -->
+</main>
+</div><!-- /shell -->
+
+<script>
+"use strict";
+/* ============ helpers ============ */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const bin=(n,w)=> (n>>>0).toString(2).padStart(w,'0').slice(-w);
+const toSigned=(u,bits)=>{const m=1<<(bits-1); return (u & (m-1)) - (u & m);};
+
+/* ============ mobile nav ============ */
+const side=$('#side'), menuBtn=$('#menuBtn');
+menuBtn.addEventListener('click',()=>side.classList.toggle('open'));
+$$('.side a.lnk').forEach(a=>a.addEventListener('click',()=>side.classList.remove('open')));
+
+/* ============ scroll-spy ============ */
+const spyTargets=$$('main [id]').filter(el=>$(`.side a[href="#${el.id}"]`));
+const linkFor=id=>$(`.side a[href="#${id}"]`);
+const spy=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      $$('.side a.active').forEach(a=>a.classList.remove('active'));
+      const l=linkFor(e.target.id); if(l) l.classList.add('active');
+    }
+  });
+},{rootMargin:'-45% 0px -50% 0px',threshold:0});
+spyTargets.forEach(t=>spy.observe(t));
+
+/* ============ hero canvas: signal pulses on traces ============ */
+(function(){
+  const c=$('#trace-canvas'); if(!c) return;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const ctx=c.getContext('2d'); let W,H,traces=[],pulses=[],raf;
+  function size(){W=c.width=c.offsetWidth; H=c.height=c.offsetHeight; build();}
+  function build(){
+    traces=[]; const rows=Math.max(4,Math.floor(H/46));
+    for(let i=0;i<rows;i++){
+      const y=20+i*((H-40)/(rows-1||1));
+      const segs=[{x:0,y}]; let x=0;
+      while(x<W){ x+=40+Math.random()*120; const ny=y+(Math.random()<.4?(Math.random()<.5?-18:18):0);
+        segs.push({x:Math.min(x,W),y}); if(ny!==y){segs.push({x:Math.min(x,W),y:ny}); segs[segs.length-2].y=y;}
+      }
+      traces.push(segs);
+    }
+    pulses=[];
+    for(let i=0;i<Math.min(10,rows);i++) pulses.push(spawn());
+  }
+  function spawn(){const t=Math.floor(Math.random()*traces.length); return {t,p:Math.random()*0.3,sp:0.0012+Math.random()*0.002};}
+  function ptAt(segs,frac){
+    let total=0,lens=[];
+    for(let i=1;i<segs.length;i++){const d=Math.hypot(segs[i].x-segs[i-1].x,segs[i].y-segs[i-1].y);lens.push(d);total+=d;}
+    let target=frac*total,acc=0;
+    for(let i=1;i<segs.length;i++){ if(acc+lens[i-1]>=target){const r=(target-acc)/(lens[i-1]||1);
+      return {x:segs[i-1].x+(segs[i].x-segs[i-1].x)*r,y:segs[i-1].y+(segs[i].y-segs[i-1].y)*r};} acc+=lens[i-1];}
+    return segs[segs.length-1];
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.lineWidth=1; ctx.strokeStyle='rgba(40,69,106,.55)';
+    traces.forEach(segs=>{ctx.beginPath();ctx.moveTo(segs[0].x,segs[0].y);for(let i=1;i<segs.length;i++)ctx.lineTo(segs[i].x,segs[i].y);ctx.stroke();
+      segs.forEach(s=>{ctx.fillStyle='rgba(40,69,106,.7)';ctx.fillRect(s.x-1,s.y-1,2,2);});});
+    pulses.forEach((pu,idx)=>{ pu.p+=pu.sp; if(pu.p>1.05){pulses[idx]=spawn();return;}
+      const pt=ptAt(traces[pu.t],Math.min(pu.p,1));
+      const g=ctx.createRadialGradient(pt.x,pt.y,0,pt.x,pt.y,7);
+      g.addColorStop(0,'rgba(69,200,192,.95)');g.addColorStop(1,'rgba(69,200,192,0)');
+      ctx.fillStyle=g; ctx.beginPath();ctx.arc(pt.x,pt.y,7,0,7);ctx.fill();
+      ctx.fillStyle='rgba(240,168,48,.9)';ctx.beginPath();ctx.arc(pt.x,pt.y,1.6,0,7);ctx.fill();
+    });
+    raf=requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',size); size(); draw();
+})();
+
+/* ============ 3.2 adder / overflow ============ */
+(function(){
+  const A=$('#addA'),B=$('#addB'),OP=$('#addOp'),rows=$('#addRows'),out=$('#addOut');
+  function bitRow(label,val,cls){
+    const bits=bin(val,8).split('');
+    return `<div class="bitrow"><span class="lbl-w">${label}</span>`+
+      bits.map(b=>`<div class="bit ${b==='1'?'one':'zero'} ${cls||''}">${b}</div>`).join('')+`</div>`;
+  }
+  function go(){
+    let a=Math.max(-128,Math.min(127,parseInt(A.value)||0));
+    let b=Math.max(-128,Math.min(127,parseInt(B.value)||0));
+    const sub=OP.value==='sub';
+    const ua=a&0xFF, ub0=b&0xFF, ub=sub?((~ub0)&0xFF):ub0;
+    const cin=sub?1:0;
+    // ripple add ua+ub+cin
+    let carry=cin, carries=[], sum=0;
+    for(let i=0;i<8;i++){const ai=(ua>>i)&1, bi=(ub>>i)&1; const s=ai+bi+carry; carries[i]=carry; sum|=(s&1)<<i; carry=s>>1;}
+    const cout=carry, cinMSB=carries[7];
+    const ov=(cinMSB^cout)===1;
+    const res=toSigned(sum&0xFF,8);
+    rows.innerHTML =
+      bitRow('A = '+a, ua) +
+      bitRow((sub?'~B+1 (= −B)':'B = '+b), ub) +
+      // carry display row
+      `<div class="bitrow"><span class="lbl-w">carry</span>`+
+        [...Array(8)].map((_,i)=>{const ci=carries[7-i];return `<div class="bit ${ci?'carry':'zero'}">${ci}</div>`;}).join('')+`</div>`+
+      bitRow('Sum = '+res, sum, 'flip');
+    out.innerHTML = `<span class="k">運算：</span><span class="v">${a} ${sub?'−':'+'} ${b} = ${sub? a-b : a+b}</span><br>`+
+      `<span class="k">8-bit 結果：</span><span class="v">${res}</span>　`+
+      `<span class="k">進入 MSB 進位 = ${cinMSB}，離開 MSB 進位 = ${cout}</span><br>`+
+      `<span class="k">判斷：</span> ${ov?'<span class="tag-miss">OVERFLOW 溢位</span> 兩進位不同，結果超出 −128~127':'<span class="tag-hit">正常</span> 進位一致，結果可信'}`;
+  }
+  $('#addGo').addEventListener('click',go); [A,B].forEach(e=>e.addEventListener('keydown',ev=>{if(ev.key==='Enter')go();})); OP.addEventListener('change',go); go();
+})();
+
+/* ============ 3.5 multiply stepper (4-bit, ver3) ============ */
+(function(){
+  const M=$('#mulM'),Q=$('#mulQ'),tbody=$('#mulTbl tbody'),out=$('#mulOut');
+  let st=null;
+  function fmtProd(p){return bin(p>>4,4)+' '+bin(p&0xF,4);}
+  function load(){
+    let m=Math.max(0,Math.min(15,parseInt(M.value)||0));
+    let q=Math.max(0,Math.min(15,parseInt(Q.value)||0));
+    st={m,prod:q&0xF,i:0,done:false};
+    tbody.innerHTML='';
+    addRow('初始','prod ← multiplier 放低 4 位',st.prod,m);
+    out.innerHTML=`<span class="k">計算 ${m} × ${q}。每輪：測 prod 最低位 → (若為1)高半加 M → 整體右移。</span>`;
+  }
+  function addRow(step,act,prod,m){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${step}</td><td style="font-size:.82rem">${act}</td><td class="mono">${fmtProd(prod)}</td><td class="mono">${bin(m,4)}</td>`;
+    tbody.appendChild(tr);
+  }
+  function step(){
+    if(!st){load();return;}
+    if(st.done) return;
+    const i=st.i; const lowbit=st.prod&1;
+    let act;
+    if(lowbit){ const hi=((st.prod>>4)+st.m); const combined=((hi<<4)|(st.prod&0xF));
+      st.prod=combined>>1; act=`第${i+1}輪：最低位=1 → 高半 +M，再右移`; }
+    else { st.prod=st.prod>>1; act=`第${i+1}輪：最低位=0 → 直接右移`; }
+    st.i++; addRow(i+1,act,st.prod,st.m);
+    if(st.i>=4){st.done=true; const res=st.prod&0xFF;
+      out.innerHTML=`<span class="tag-hit">完成</span> 4 輪結束，乘積 = <b>${res}</b>（二進位 ${bin(res,8)}）`;}
+  }
+  $('#mulInit').addEventListener('click',load);
+  $('#mulStep').addEventListener('click',step);
+  $('#mulAuto').addEventListener('click',()=>{if(!st||st.done)load(); while(!st.done)step();});
+  load();
+})();
+
+/* ============ 3.6 booth stepper (4-bit signed) ============ */
+(function(){
+  const Mi=$('#boM'),Qi=$('#boQ'),tbody=$('#boTbl tbody'),out=$('#boOut');
+  let st=null;
+  function load(){
+    let m=Math.max(-7,Math.min(7,parseInt(Mi.value)||0));
+    let q=Math.max(-8,Math.min(7,parseInt(Qi.value)||0));
+    st={mPat:m&0xF,mVal:m,A:0,Q:q&0xF,Qm1:0,i:0,done:false,qVal:q};
+    tbody.innerHTML='';
+    row('初始','—');
+    out.innerHTML=`<span class="k">計算 ${m} × ${q}。看 (Q0,Q-1)：10減、01加、其餘不動 → 算術右移。</span>`;
+  }
+  function row(step,act){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${step}</td><td class="mono">${bin(st.A,4)}</td><td class="mono">${bin(st.Q,4)}</td><td class="mono">${st.Qm1}</td><td style="font-size:.8rem">${act}</td>`;
+    tbody.appendChild(tr);
+  }
+  function step(){
+    if(!st){load();return;}
+    if(st.done) return;
+    const i=st.i, q0=st.Q&1, code=''+q0+st.Qm1; let act;
+    if(code==='10'){st.A=(st.A-st.mPat)&0xF; act='(1,0) 開頭 → A = A − M';}
+    else if(code==='01'){st.A=(st.A+st.mPat)&0xF; act='(0,1) 結尾 → A = A + M';}
+    else {act=`(${q0},${st.Qm1}) → 不動`;}
+    // arithmetic shift right [A,Q,Qm1]
+    const sign=(st.A>>3)&1;
+    const newQm1=st.Q&1;
+    const newQ=((st.Q>>1)|((st.A&1)<<3))&0xF;
+    const newA=((st.A>>1)|(sign<<3))&0xF;
+    st.A=newA; st.Q=newQ; st.Qm1=newQm1; st.i++;
+    row(i+1, act+' ，算術右移');
+    if(st.i>=4){st.done=true; const prod=toSigned(((st.A<<4)|st.Q)&0xFF,8);
+      out.innerHTML=`<span class="tag-hit">完成</span> 乘積 = <b>${prod}</b>（驗證 ${st.mVal} × ${st.qVal} = ${st.mVal*st.qVal}）`;}
+  }
+  $('#boInit').addEventListener('click',load);
+  $('#boStep').addEventListener('click',step);
+  $('#boAuto').addEventListener('click',()=>{if(!st||st.done)load(); while(!st.done)step();});
+  load();
+})();
+
+/* ============ 3.7 IEEE-754 ============ */
+(function(){
+  const inp=$('#ieIn'),bitsEl=$('#ieBits'),out=$('#ieOut');
+  function go(){
+    const v=parseFloat(inp.value); if(isNaN(v)){out.textContent='請輸入數字';return;}
+    const buf=new ArrayBuffer(4); new DataView(buf).setFloat32(0,v);
+    const u=new DataView(buf).getUint32(0);
+    const str=bin(u,32);
+    bitsEl.innerHTML = str.split('').map((b,i)=>{
+      let cls='ie-m'; if(i===0)cls='ie-s'; else if(i<=8)cls='ie-e';
+      return `<div class="iebit ${cls}">${b}</div>`;
+    }).join('');
+    const s=(u>>>31)&1, e=(u>>>23)&0xFF, m=u&0x7FFFFF;
+    const exp=e-127;
+    out.innerHTML=`<span class="k">Sign S =</span> <span class="v">${s}</span> → ${s?'負':'正'}<br>`+
+      `<span class="k">Exponent =</span> <span class="v">${e}</span> (二進位 ${bin(e,8)})，去 bias：${e} − 127 = <b>${exp}</b><br>`+
+      `<span class="k">Mantissa =</span> <span class="v">${bin(m,23)}</span><br>`+
+      `<span class="k">數值 =</span> (−1)<sup>${s}</sup> × 1.${bin(m,23)} × 2<sup>${exp}</sup> = <b>${v}</b>`;
+  }
+  $('#ieGo').addEventListener('click',go); inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();}); go();
+})();
+
+/* ============ 4.2 datapath ============ */
+(function(){
+  const sel=$('#dpSel'),svg=$('#dpSvg'),out=$('#dpOut'),ctrlRow=$('#dpCtrlRow');
+  const cfg={
+    r:{boxes:['pc','im','reg','alu'],wires:['pc_im','im_reg','reg_alu','reg_alub','alu_wb'],
+       ctrl:[1,0,0,0,0,1,0], desc:'R-type：讀兩個暫存器 → ALU 運算 → 寫回 rd。不碰資料記憶體，ALUSrc=0、RegDst=1。'},
+    lw:{boxes:['pc','im','reg','se','alu','dm'],wires:['pc_im','im_reg','im_se','reg_alu','se_alu','alu_dm','dm_wb'],
+       ctrl:[0,1,1,0,1,1,0], desc:'lw：base 暫存器 + 符號延伸 offset → ALU 算位址 → 讀資料記憶體 → 寫回 rt。ALUSrc=1、MemRead=1、MemtoReg=1。'},
+    sw:{boxes:['pc','im','reg','se','alu','dm'],wires:['pc_im','im_reg','im_se','reg_alu','se_alu','alu_dm'],
+       ctrl:[0,1,0,1,0,0,0], desc:'sw：算位址同 lw，但把暫存器值寫進資料記憶體，不寫回暫存器。MemWrite=1、RegWrite=0。'},
+    beq:{boxes:['pc','im','reg','alu','branch'],wires:['pc_im','im_reg','reg_alu','reg_alub','branch'],
+       ctrl:[0,0,0,0,0,0,1], desc:'beq：ALU 做減法比較兩暫存器，Zero=1 且 Branch=1 時 PC 換成分支目標。不寫暫存器、不碰資料記憶體。'}
+  };
+  function apply(){
+    const k=sel.value, c=cfg[k];
+    $$('.dp-box',svg).forEach(b=>b.classList.toggle('active',c.boxes.includes(b.dataset.b)));
+    $$('.dp-lbl',svg).forEach(l=>l.classList.remove('active'));
+    $$('.dp-wire',svg).forEach(w=>w.classList.toggle('active',c.wires.includes(w.dataset.w)));
+    out.innerHTML=`<span class="k">資料流：</span> ${c.desc}`;
+    const names=['RegDst','ALUSrc','MemRead','MemWrite','MemtoReg','RegWrite','Branch'];
+    ctrlRow.innerHTML=c.ctrl.map((v,i)=>`<td class="mono" style="color:${v?'var(--accent-2)':'var(--faint)'}">${v}</td>`).join('');
+  }
+  sel.addEventListener('change',apply); apply();
+})();
+
+/* ============ 4.5 pipeline diagram ============ */
+(function(){
+  const sel=$('#pipeSel'),tbl=$('#pipeTbl'),note=$('#pipeNote');
+  const ST=['IF','ID','EX','MEM','WB'];
+  // each scenario: array of instructions, each {label, start:cycleIndex(0-based), bubbles:[positions], stretch}
+  function scenarios(k){
+    if(k==='ideal') return {ncyc:9, note:'各指令無相依，每個時脈進來一條，穩定後 CPI→1。',
+      rows:[{l:'lw  $1,0($0)',cells:seq(0)},{l:'add $3,$4,$5',cells:seq(1)},{l:'sub $6,$7,$8',cells:seq(2)},{l:'or  $9,$1,$2',cells:seq(3)}]};
+    if(k==='stall') return {ncyc:11, note:'add 要用 sub 的 $2，但 $2 要等 sub 的 WB(第5週期)才寫好；只用停頓需插入泡泡，等到第5週期後 ID 才讀得到正確值。',
+      rows:[{l:'sub $2,$1,$3',cells:seq(0)},
+            {l:'add $5,$2,$4',cells:bub(1,2)}]};
+    if(k==='forward') return {ncyc:9, note:'同樣相依，但用前送：sub 的 EX 結果(第3週期末)直接送到 add 的 EX(第4週期)，不必停頓。',
+      rows:[{l:'sub $2,$1,$3',cells:seq(0)},
+            {l:'add $5,$2,$4',cells:seq(1)}], fwd:'前送：EX/MEM → EX（第3→4週期）'};
+    // loaduse
+    return {ncyc:10, note:'lw 的資料要到 MEM(第4週期)才拿到，後一條 add 在第4週期就要用——即使有前送，仍需停頓 1 個週期 (load-use hazard)。',
+      rows:[{l:'lw  $2,0($1)',cells:seq(0)},
+            {l:'add $5,$2,$4',cells:bub(1,1)}], fwd:'前送：MEM/WB → EX，但需 1 個 bubble 補上時間差'};
+  }
+  function seq(start){const a=Array(start).fill(null); ST.forEach(s=>a.push(s)); return a;}
+  function bub(start,nb){ // IF,ID then nb bubbles then EX,MEM,WB
+    const a=Array(start).fill(null); a.push('IF','ID'); for(let i=0;i<nb;i++)a.push('-'); a.push('EX','MEM','WB'); return a;}
+  function render(){
+    const sc=scenarios(sel.value);
+    let html='<tr><td class="lbl"></td>';
+    for(let c=1;c<=sc.ncyc;c++) html+=`<th>C${c}</th>`;
+    html+='</tr>';
+    sc.rows.forEach(r=>{
+      html+=`<tr><td class="lbl">${r.l.replace(/ /g,'&nbsp;')}</td>`;
+      for(let c=0;c<sc.ncyc;c++){
+        const v=r.cells[c];
+        if(!v) html+='<td></td>';
+        else if(v==='-') html+=`<td><div class="stage st-bub">··</div></td>`;
+        else html+=`<td><div class="stage st-${v}">${v}</div></td>`;
+      }
+      html+='</tr>';
+    });
+    tbl.innerHTML=html;
+    note.textContent=sc.note + (sc.fwd? '　['+sc.fwd+']':'');
+  }
+  sel.addEventListener('change',render); render();
+})();
+
+/* ============ 5.1 pyramid ============ */
+(function(){
+  const wrap=$('#pyr'),info=$('#pyrInfo');
+  const layers=[
+    {n:'Registers 暫存器',w:130,d:'最快（<1ns，CPU 內）、最小（~KB 以下）、最貴。直接被指令操作。'},
+    {n:'L1 / L2 Cache (SRAM)',w:190,d:'很快（1–10ns）、小（KB~MB）。靠局部性攔截多數存取。'},
+    {n:'Main Memory 主記憶體 (DRAM)',w:280,d:'中速（~50–100ns）、中容量（GB）。需 refresh。'},
+    {n:'Disk / Flash 儲存',w:370,d:'最慢（µs~ms）、最大（TB）、最便宜、非揮發。虛擬記憶體的後盾。'}
+  ];
+  wrap.innerHTML=layers.map((L,i)=>`<div class="pyr-layer" data-i="${i}" style="width:${L.w}px"><b>${L.n}</b></div>`).join('');
+  $$('.pyr-layer',wrap).forEach(el=>el.addEventListener('click',()=>{
+    $$('.pyr-layer',wrap).forEach(x=>x.classList.remove('sel')); el.classList.add('sel');
+    info.innerHTML=`<b style="color:var(--accent-2)">${layers[el.dataset.i].n}</b><br>${layers[el.dataset.i].d}`;
+  }));
+})();
+
+/* ============ 5.3 cache simulator ============ */
+(function(){
+  const seqEl=$('#caSeq'),tbody=$('#caTbl tbody'),out=$('#caOut');
+  const LINES=4;
+  function go(){
+    const addrs=(seqEl.value.match(/-?\d+/g)||[]).map(Number).filter(n=>n>=0);
+    const valid=Array(LINES).fill(false), tags=Array(LINES).fill(-1);
+    let hits=0; tbody.innerHTML='';
+    addrs.forEach((a,i)=>{
+      const idx=a%LINES, tag=Math.floor(a/LINES);
+      const hit=valid[idx]&&tags[idx]===tag;
+      if(hit)hits++; else {valid[idx]=true; tags[idx]=tag;}
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${i+1}</td><td class="mono">${a}</td><td class="mono">${bin(a,5)}</td>`+
+        `<td class="mono">${bin(tag,3)}</td><td class="mono">${bin(idx,2)} (=${idx})</td>`+
+        `<td>${hit?'<span class="tag-hit">HIT</span>':'<span class="tag-miss">MISS</span>'}</td>`;
+      tbody.appendChild(tr);
+    });
+    const n=addrs.length;
+    out.innerHTML = n? `<span class="k">總存取 ${n}　命中 ${hits}　失誤 ${n-hits}</span><br>`+
+      `<span class="k">命中率 hit ratio =</span> <b>${(hits/n*100).toFixed(1)}%</b>` : '請輸入有效位址。';
+  }
+  $('#caGo').addEventListener('click',go); seqEl.addEventListener('keydown',e=>{if(e.key==='Enter')go();}); go();
+})();
+</script>
+</body>
+</html>

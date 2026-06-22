@@ -111,6 +111,20 @@ canvas{background:var(--ground-2);border:1px solid var(--line);border-radius:var
 .quiz button{background:var(--surface-2);border:1px solid var(--line);color:var(--text);display:block;width:100%;text-align:left;font-family:var(--sans);font-weight:500}
 .quiz button.ok{background:rgba(95,208,138,.2);border-color:var(--good);color:var(--text)}
 .quiz button.no{background:rgba(239,111,111,.18);border-color:var(--bad);color:var(--text)}
+/* code blocks */
+.codewrap{position:relative;margin:10px 0}
+pre.code{background:var(--ground-2);border:1px solid var(--line);border-radius:var(--r);
+  padding:30px 16px 14px;overflow-x:auto;font-family:var(--mono);font-size:.82rem;line-height:1.6;color:var(--text);margin:0;white-space:pre}
+.copybtn{position:absolute;top:7px;right:8px;font-family:var(--mono);font-size:.7rem;
+  background:var(--surface-2);color:var(--accent);border:1px solid var(--accent-dim);
+  border-radius:6px;padding:3px 10px;cursor:pointer;opacity:.75;font-weight:700;z-index:2}
+.copybtn:hover{opacity:1}
+.copybtn.done{color:var(--good);border-color:var(--good)}
+.c-kw{color:var(--accent)}
+.c-str{color:var(--good)}
+.c-com{color:var(--faint);font-style:italic}
+.c-num{color:var(--accent-2)}
+.cmp-tbl td{text-align:left}
 
 footer{border-top:1px solid var(--line);margin-top:70px;padding:28px 0;color:var(--faint);font-size:.82rem;font-family:var(--mono)}
 
@@ -157,6 +171,14 @@ footer{border-top:1px solid var(--line);margin-top:70px;padding:28px 0;color:var
     <li class="grp">深度學習</li>
     <li><a class="lnk" href="#cnn">卷積神經網路 CNN</a></li>
     <li><a class="lnk" href="#nn">神經網路實作</a></li>
+    <li class="grp">實作練習 Python</li>
+    <li><a class="lnk" href="#p-py">Python 基礎</a></li>
+    <li><a class="lnk" href="#p-np">NumPy 影像</a></li>
+    <li><a class="lnk" href="#p-lr">線性回歸</a></li>
+    <li><a class="lnk" href="#p-km">K-Means</a></li>
+    <li><a class="lnk" href="#p-mnist">MNIST 手寫辨識</a></li>
+    <li><a class="lnk" href="#p-cnn">CIFAR CNN</a></li>
+    <li><a class="lnk" href="#p-ak">AutoKeras</a></li>
   </ol>
 </nav>
 
@@ -432,7 +454,222 @@ footer{border-top:1px solid var(--line);margin-top:70px;padding:28px 0;color:var
   </div>
 </section>
 
-<footer>整理自課程簡報 ch0–ch3 與 Lab ✦ 祝期末順利 🎓</footer>
+<!-- ============================================================ 實作練習 -->
+<section id="p-py">
+  <h2>⑪ 實作練習：Python 基礎<span class="tag">0306</span></h2>
+  <div class="plain"><b>暖身：</b>第一堂課的 Python 基本功——用 <code>input()</code> 讀輸入、<code>int()</code> 轉型別、<code>if-elif-else</code> 判斷、巢狀 <code>for</code> 迴圈。</div>
+  <h3>簡易計算機（選 1/2/3/4 做加減乘除）</h3>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+choice = int(input())
+a = int(input())
+b = int(input())
+if choice == 1:
+  print(a, " + ", b, " = ", a + b)
+elif choice == 2:
+  print(a, " - ", b, " = ", a - b)
+elif choice == 3:
+  print(a, " * ", b, " = ", a * b)
+else:
+  print(a, " / ", b, " = ", a / b)
+</pre></div>
+  <h3>九九乘法表（雙層迴圈 + 對齊格式）</h3>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+a = int(input())
+b = int(input())
+for i in range(1, a+1):
+  for j in range(1, b+1):
+    print("{}*{} = {:&gt;2d}".format(i, j, i*j), end="\t")
+  print()
+</pre></div>
+  <p class="note"><code>{:&gt;2d}</code>＝靠右對齊、寬度 2 的整數；<code>end="\t"</code>＝用 Tab 取代換行讓同列並排。</p>
+</section>
+
+<section id="p-np">
+  <h2>⑫ 實作練習：NumPy 影像處理<span class="tag">0313</span></h2>
+  <div class="plain"><b>核心觀念：</b>一張圖片在電腦裡就是一個 <b>NumPy 陣列</b>（高 × 寬 × 色彩通道），所以用陣列切片就能裁切、縮放，用算術就能改變顏色。</div>
+  <div class="grid g3">
+    <div class="mini"><h4>讀取/顯示</h4><code>plt.imread</code> 讀檔、<code>plt.imshow</code> 顯示。</div>
+    <div class="mini"><h4>切片縮放</h4><code>img[0:h, 0:w]</code> 取左上角區域。</div>
+    <div class="mini"><h4>負片效果</h4><code>255 - img</code>：每個像素值反相。</div>
+  </div>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+import numpy as np
+import matplotlib.pylab as plt
+from google.colab import files
+
+uploaded = files.upload()          # 上傳圖片
+img = plt.imread("101.jpg")        # 讀成 NumPy 陣列
+plt.imshow(img)                    # 顯示原圖
+
+# 縮成原本的 1/n（取左上角區塊）
+n = int(input())
+plt.imshow(img[0:int(img.shape[0]/n), 0:int(img.shape[1]/n)])
+
+# 負片：用 255 減去每個像素值
+plt.imshow(255 - img[:, :, :])
+</pre></div>
+  <p class="note"><code>img.shape</code> = (高, 寬, 通道)；<code>shape[0]</code> 是高、<code>shape[1]</code> 是寬。</p>
+</section>
+
+<section id="p-lr">
+  <h2>⑬ 實作練習：線性回歸（sklearn）<span class="tag">0320</span></h2>
+  <div class="plain"><b>對應理論：</b>監督式學習的「線性回歸」。用 scikit-learn 三步驟：<b>建立模型 → fit 訓練 → predict 預測</b>，再用 <code>mean_squared_error</code> 看誤差、畫出擬合線。</div>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn import datasets, linear_model
+from sklearn.metrics import mean_squared_error
+
+X = np.random.rand(10, 1)
+y = np.random.rand(10, 1)
+
+regr = linear_model.LinearRegression()   # 建立模型
+regr.fit(X, y)                           # 訓練
+y_pre = regr.predict(X)                  # 預測
+
+mse = mean_squared_error(y, y_pre)
+print(f"平均均方誤差: {mse:.4f}")
+
+plt.scatter(X, y, color='black')                 # 原始資料(黑點)
+plt.plot(X, y_pre, color='blue', linewidth=3)    # 擬合線(藍線)
+plt.xlabel("X"); plt.ylabel("y")
+plt.show()
+</pre></div>
+</section>
+
+<section id="p-km">
+  <h2>⑭ 實作練習：K-Means 分群（sklearn）<span class="tag">0327</span></h2>
+  <div class="plain"><b>對應理論：</b>非監督式的 K-Means。重點 API：<code>KMeans(n_clusters=k)</code> → <code>fit</code> → 用 <code>.labels_</code> 取得每個點被分到的群，當作散點圖顏色。</div>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import numpy as np
+
+def abc(x_min, x_max, y_min, y_max, num_samples, k):
+  x = np.random.uniform(x_min, x_max, num_samples)
+  y = np.random.uniform(y_min, y_max, num_samples)
+  data_arr = np.column_stack((x, y))
+
+  clf = KMeans(n_clusters=k)       # 設定群數 k
+  clf.fit(data_arr)                # 分群
+
+  plt.figure(figsize=(8, 6))
+  plt.scatter(data_arr[:, 0], data_arr[:, 1], s=100, c=clf.labels_)  # 顏色=群標籤
+  plt.title(f"K-Means Clustering (k={k})")
+  plt.show()
+
+abc(10, 15, 15, 20, 20, 3)         # 範圍、樣本數、群數
+</pre></div>
+</section>
+
+<section id="p-mnist">
+  <h2>⑮ 實作練習：MNIST 手寫數字辨識（多層感知）<span class="tag">0410</span></h2>
+  <div class="plain"><b>第一個神經網路：</b>把 28×28 的圖攤平成 784 個輸入，經一層隱藏層(256, ReLU)，輸出 10 類(Softmax)。注意三個<b>預處理</b>：reshape、除以 255 正規化、One-hot。</div>
+  <div class="grid g4">
+    <div class="mini"><h4>reshape</h4>(60000,28,28) → (60000,784)</div>
+    <div class="mini"><h4>正規化</h4>像素 /255 → 0~1</div>
+    <div class="mini"><h4>One-hot</h4><code>to_categorical</code> 把標籤變 10 維</div>
+    <div class="mini"><h4>輸出層</h4>10 個神經元 + Softmax</div>
+  </div>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+from keras.datasets import mnist
+from keras.utils import to_categorical
+from keras.models import Sequential
+from keras.layers import Dense
+
+(x_train_image, y_train_label), (x_test_image, y_test_label) = mnist.load_data()
+
+# 預處理：攤平 + 正規化 + One-hot
+x_Train = x_train_image.reshape(60000, 784).astype('float32') / 255
+x_Test  = x_test_image.reshape(10000, 784).astype('float32') / 255
+y_TrainOneHot = to_categorical(y_train_label)
+y_TestOneHot  = to_categorical(y_test_label)
+
+# 建立模型：784 → 256(ReLU) → 10(Softmax)
+model = Sequential()
+model.add(Dense(units=256, input_dim=784, kernel_initializer='normal', activation='relu'))
+model.add(Dense(units=10,  kernel_initializer='normal', activation='softmax'))
+
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.fit(x_Train, y_TrainOneHot, validation_split=0.2, epochs=10, batch_size=200, verbose=0)
+scores = model.evaluate(x_Test, y_TestOneHot, batch_size=1)
+print('accuracy=', scores[1])
+</pre></div>
+</section>
+
+<section id="p-cnn">
+  <h2>⑯ 實作練習：CIFAR-10 物件辨識（CNN）<span class="tag">0424 · 0508</span></h2>
+  <div class="plain"><b>對應理論：</b>卷積神經網路。彩色圖 (32,32,3) 不攤平，直接餵 <code>Conv2D</code>＋<code>MaxPooling2D</code> 抽特徵，最後 <code>Flatten</code> 接全連接層輸出 10 類。課堂做了 <b>1 / 2 / 3 個卷積層</b>的對照。</div>
+  <div class="scroller"><table class="cmp-tbl">
+    <tr><th>版本</th><th>卷積層數</th><th>結構</th><th>觀察</th></tr>
+    <tr><td>pra04241</td><td>1</td><td>Conv→Pool → Flatten→Dense</td><td>最淺，特徵少</td></tr>
+    <tr><td>pra0424</td><td>2</td><td>(Conv→Pool)×2 → Flatten→Dense</td><td>常用基準</td></tr>
+    <tr><td>pra04243</td><td>3</td><td>(Conv→Pool)×3 → Flatten→Dense</td><td>較深，通常準確度較高</td></tr>
+  </table></div>
+  <h3>模型（2 個卷積層版）</h3>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+from keras.datasets import cifar10
+from keras.utils import to_categorical
+from keras.models import Sequential
+from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
+import numpy as np
+
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+x_train = x_train.astype('float32') / 255.0      # 正規化
+x_test  = x_test.astype('float32') / 255.0
+y_train_oh = to_categorical(y_train)
+y_test_oh  = to_categorical(y_test)
+label_dict = {0:"airplane",1:"automobile",2:"bird",3:"cat",4:"deer",
+              5:"dog",6:"frog",7:"horse",8:"ship",9:"truck"}
+
+model = Sequential()
+model.add(Conv2D(filters=32, kernel_size=(3,3), input_shape=(32,32,3),
+                 activation='relu', padding='same'))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Conv2D(filters=64, kernel_size=(3,3), activation='relu', padding='same'))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Flatten())
+model.add(Dense(1024, activation='relu'))
+model.add(Dense(10, activation='softmax'))
+model.summary()                                   # 看每層參數量
+
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.fit(x_train, y_train_oh, validation_split=0.2, epochs=10, batch_size=128, verbose=0)
+print(model.evaluate(x_test, y_test_oh, batch_size=1)[1])
+</pre></div>
+  <h3>預測 + 用字典把編號變成名稱</h3>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+pre = model.predict(x_test)
+prediction = np.argmax(pre, axis=1)               # 取機率最高的類別
+
+def show(x_img, y_label, pred, i):
+    print('label:', label_dict[y_label[i][0]], 'predict:', label_dict[pred[i]])
+    plt.figure(figsize=(2,2)); plt.imshow(x_img[i]); plt.show()
+</pre></div>
+  <p class="note">進階（0508）：用 <code>find_nth_highest_correct</code> 找出「正確答案其實是機率第 N 高」的資料——對應簡報說的「有時正解是第二高分」現象。</p>
+</section>
+
+<section id="p-ak">
+  <h2>⑰ 實作練習：AutoKeras 自動建模<span class="tag">0522</span></h2>
+  <div class="plain"><b>懶人法：</b>不用自己設計網路，<code>ak.ImageClassifier</code> 會自動搜尋架構。<code>max_trials</code> = 嘗試幾種模型；介面一樣是 <code>fit / evaluate / predict</code>，最後可 <code>export_model()</code> 匯出實際的 Keras 模型。</div>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+!pip3 install autokeras
+import autokeras as ak
+from keras.datasets import cifar10
+
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+
+clf = ak.ImageClassifier(max_trials=1, overwrite=True)  # 自動搜尋 1 種架構
+clf.fit(x_train, y_train, batch_size=32, epochs=15)
+clf.evaluate(x_test, y_test, batch_size=32)
+predicted = clf.predict(x_test, batch_size=32).astype(int)
+
+model = clf.export_model()      # 匯出成 Keras 模型
+model.summary()
+</pre></div>
+</section>
+
+<footer>整理自課程簡報 ch0–ch3 與 Lab、課堂 Python 練習 ✦ 祝期末順利 🎓</footer>
 
 </div>
 </main>
@@ -680,6 +917,38 @@ document.getElementById('dBtn').onclick=()=>{
   document.getElementById('dOut').innerHTML=`${i}×${o} + ${o} = <b>${i*o+o}</b>`;
 };
 document.getElementById('dBtn').click();
+
+/* ============ 程式碼語法上色 + 複製鈕 ============ */
+(function(){
+  const KW=/\b(import|from|as|def|return|for|in|if|elif|else|while|and|or|not|None|True|False|class|with|lambda|print|range|int|float|str)\b/;
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function hl(code){
+    return esc(code).replace(
+      /(#[^\n]*)|('[^']*'|"[^"]*")|(\b\d+\.?\d*\b)|([A-Za-z_]\w*)/g,
+      (m,com,str,num,word)=>{
+        if(com) return '<span class="c-com">'+com+'</span>';
+        if(str) return '<span class="c-str">'+str+'</span>';
+        if(num) return '<span class="c-num">'+num+'</span>';
+        if(word && KW.test(word)) return '<span class="c-kw">'+word+'</span>';
+        return m;
+      });
+  }
+  document.querySelectorAll('pre.code').forEach(pre=>{
+    const raw=pre.textContent.replace(/^\n/,'');
+    pre.dataset.raw=raw;
+    pre.innerHTML=hl(raw);
+  });
+  document.querySelectorAll('.copybtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const pre=btn.parentElement.querySelector('pre.code');
+      const text=pre.dataset.raw||pre.textContent;
+      navigator.clipboard.writeText(text).then(()=>{
+        btn.textContent='已複製 ✓'; btn.classList.add('done');
+        setTimeout(()=>{btn.textContent='複製'; btn.classList.remove('done');},1500);
+      }).catch(()=>{ btn.textContent='複製失敗'; });
+    });
+  });
+})();
 </script>
 </body>
 </html>

@@ -40,6 +40,9 @@ main{min-width:0;padding:0 clamp(18px,5vw,64px) 120px}
 .subjnav{margin:16px 0 4px;padding-bottom:14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
 .subjnav .stitle{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;color:var(--faint);text-transform:uppercase;margin:0 0 4px;padding-left:10px}
 .side a.lnk.subj-cur{color:var(--accent-2);border-left-color:var(--accent-2);background:rgba(240,168,48,.1);font-weight:700}
+.side a.lnk.prac{font-size:.84rem;color:var(--faint);padding-left:16px}
+.side a.lnk.prac::before{content:"›";margin-right:6px;color:var(--accent-2)}
+.side a.lnk.prac.active{color:var(--accent-2);border-left-color:var(--accent-2);background:rgba(240,168,48,.08)}
 
 /* hero */
 .hero{position:relative;padding:64px 0 30px;overflow:hidden}
@@ -125,6 +128,8 @@ pre.code{background:var(--ground-2);border:1px solid var(--line);border-radius:v
 .c-com{color:var(--faint);font-style:italic}
 .c-num{color:var(--accent-2)}
 .cmp-tbl td{text-align:left}
+.pbadge{display:inline-block;font-family:var(--mono);font-size:.6em;vertical-align:middle;
+  background:var(--accent-2);color:#1a1205;border-radius:5px;padding:2px 9px;margin-right:10px;font-weight:700;letter-spacing:.06em}
 
 footer{border-top:1px solid var(--line);margin-top:70px;padding:28px 0;color:var(--faint);font-size:.82rem;font-family:var(--mono)}
 
@@ -161,24 +166,23 @@ footer{border-top:1px solid var(--line);margin-top:70px;padding:28px 0;color:var
     <li><a class="lnk" href="#c1">AI / ML / DL</a></li>
     <li><a class="lnk" href="#c2">AI 發展史</a></li>
     <li><a class="lnk" href="#c3">四種學習類型</a></li>
+    <li><a class="lnk prac" href="#p-py">實作：Python 基礎</a></li>
+    <li><a class="lnk prac" href="#p-np">實作：NumPy 影像</a></li>
     <li class="grp">監督式學習</li>
     <li><a class="lnk" href="#knn">最近鄰居 KNN</a></li>
     <li><a class="lnk" href="#tree">決策樹</a></li>
     <li><a class="lnk" href="#bayes">貝氏分類器</a></li>
+    <li><a class="lnk prac" href="#p-lr">實作：線性回歸</a></li>
     <li class="grp">非監督 / 增強</li>
     <li><a class="lnk" href="#km">K-Means 分群</a></li>
+    <li><a class="lnk prac" href="#p-km">實作：K-Means</a></li>
     <li><a class="lnk" href="#rl">增強學習</a></li>
     <li class="grp">深度學習</li>
     <li><a class="lnk" href="#cnn">卷積神經網路 CNN</a></li>
+    <li><a class="lnk prac" href="#p-cnn">實作：CIFAR CNN</a></li>
     <li><a class="lnk" href="#nn">神經網路實作</a></li>
-    <li class="grp">實作練習 Python</li>
-    <li><a class="lnk" href="#p-py">Python 基礎</a></li>
-    <li><a class="lnk" href="#p-np">NumPy 影像</a></li>
-    <li><a class="lnk" href="#p-lr">線性回歸</a></li>
-    <li><a class="lnk" href="#p-km">K-Means</a></li>
-    <li><a class="lnk" href="#p-mnist">MNIST 手寫辨識</a></li>
-    <li><a class="lnk" href="#p-cnn">CIFAR CNN</a></li>
-    <li><a class="lnk" href="#p-ak">AutoKeras</a></li>
+    <li><a class="lnk prac" href="#p-mnist">實作：MNIST</a></li>
+    <li><a class="lnk prac" href="#p-ak">實作：AutoKeras</a></li>
   </ol>
 </nav>
 
@@ -193,8 +197,8 @@ footer{border-top:1px solid var(--line);margin-top:70px;padding:28px 0;color:var
     <h1>把 AI 觀念變成可以動手玩的圖解
       <span class="sub">從 AI / ML / DL 的關係，到機器學習五大演算法與 CNN</span>
     </h1>
-    <p class="lead">這份教材把「人工智慧導論」拆成易懂的脈絡：先搞懂三個名詞的關係與歷史，再用互動圖解把監督式、非監督式、增強學習與深度學習一個個玩過一遍。每個演算法都配可調參數的小工具——拉一下，看它怎麼判斷。</p>
-    <p class="howto">使用方式 · 左側導覽跳節 → 讀白話說明 → 看圖解 → 操作互動工具驗證理解</p>
+    <p class="lead">這份教材把「人工智慧導論」拆成易懂的脈絡：先搞懂三個名詞的關係與歷史，再用互動圖解把監督式、非監督式、增強學習與深度學習一個個玩過一遍。每個理論後面都接上對應的<b>課堂 Python 實作</b>，邊讀邊看程式怎麼寫。</p>
+    <p class="howto">使用方式 · 左側導覽跳節 → 讀白話說明 → 看圖解/操作工具 → 對照「實作」程式碼（可一鍵複製）</p>
     <div class="hcards">
       <a class="hcard" href="#c1"><span class="n">PART 1</span><h3>概念基礎</h3><p>AI/ML/DL、發展史、四種學習類型</p></a>
       <a class="hcard" href="#knn"><span class="n">PART 2</span><h3>監督式學習</h3><p>KNN、決策樹、貝氏分類器</p></a>
@@ -265,6 +269,64 @@ footer{border-top:1px solid var(--line);margin-top:70px;padding:28px 0;color:var
   </div>
 </section>
 
+<!-- ============ 實作：Python 基礎 ============ -->
+<section id="p-py">
+  <h2><span class="pbadge">實作</span>Python 基礎<span class="tag">0306</span></h2>
+  <div class="plain"><b>暖身：</b>第一堂課的 Python 基本功——用 <code>input()</code> 讀輸入、<code>int()</code> 轉型別、<code>if-elif-else</code> 判斷、巢狀 <code>for</code> 迴圈。寫演算法前先把工具練熟。</div>
+  <h3>簡易計算機（選 1/2/3/4 做加減乘除）</h3>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+choice = int(input())
+a = int(input())
+b = int(input())
+if choice == 1:
+  print(a, " + ", b, " = ", a + b)
+elif choice == 2:
+  print(a, " - ", b, " = ", a - b)
+elif choice == 3:
+  print(a, " * ", b, " = ", a * b)
+else:
+  print(a, " / ", b, " = ", a / b)
+</pre></div>
+  <h3>九九乘法表（雙層迴圈 + 對齊格式）</h3>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+a = int(input())
+b = int(input())
+for i in range(1, a+1):
+  for j in range(1, b+1):
+    print("{}*{} = {:&gt;2d}".format(i, j, i*j), end="\t")
+  print()
+</pre></div>
+  <p class="note"><code>{:&gt;2d}</code>＝靠右對齊、寬度 2 的整數；<code>end="\t"</code>＝用 Tab 取代換行讓同列並排。</p>
+</section>
+
+<!-- ============ 實作：NumPy ============ -->
+<section id="p-np">
+  <h2><span class="pbadge">實作</span>NumPy 影像處理<span class="tag">0313</span></h2>
+  <div class="plain"><b>核心觀念：</b>一張圖片在電腦裡就是一個 <b>NumPy 陣列</b>（高 × 寬 × 色彩通道），所以用陣列切片就能裁切、縮放，用算術就能改變顏色。後面 MNIST/CIFAR 都靠這個基礎。</div>
+  <div class="grid g3">
+    <div class="mini"><h4>讀取/顯示</h4><code>plt.imread</code> 讀檔、<code>plt.imshow</code> 顯示。</div>
+    <div class="mini"><h4>切片縮放</h4><code>img[0:h, 0:w]</code> 取左上角區域。</div>
+    <div class="mini"><h4>負片效果</h4><code>255 - img</code>：每個像素值反相。</div>
+  </div>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+import numpy as np
+import matplotlib.pylab as plt
+from google.colab import files
+
+uploaded = files.upload()          # 上傳圖片
+img = plt.imread("101.jpg")        # 讀成 NumPy 陣列
+plt.imshow(img)                    # 顯示原圖
+
+# 縮成原本的 1/n（取左上角區塊）
+n = int(input())
+plt.imshow(img[0:int(img.shape[0]/n), 0:int(img.shape[1]/n)])
+
+# 負片：用 255 減去每個像素值
+plt.imshow(255 - img[:, :, :])
+</pre></div>
+  <p class="note"><code>img.shape</code> = (高, 寬, 通道)；<code>shape[0]</code> 是高、<code>shape[1]</code> 是寬。</p>
+</section>
+
 <!-- ============ KNN ============ -->
 <section id="knn">
   <h2>④ 最近鄰居法 KNN（監督式）<span class="tag">★常考計算</span></h2>
@@ -321,6 +383,33 @@ footer{border-top:1px solid var(--line);margin-top:70px;padding:28px 0;color:var
   </div>
 </section>
 
+<!-- ============ 實作：線性回歸 ============ -->
+<section id="p-lr">
+  <h2><span class="pbadge">實作</span>線性回歸（sklearn）<span class="tag">0320</span></h2>
+  <div class="plain"><b>對應理論：</b>監督式學習的「線性回歸」。用 scikit-learn 三步驟：<b>建立模型 → fit 訓練 → predict 預測</b>，再用 <code>mean_squared_error</code> 看誤差、畫出擬合線。</div>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn import datasets, linear_model
+from sklearn.metrics import mean_squared_error
+
+X = np.random.rand(10, 1)
+y = np.random.rand(10, 1)
+
+regr = linear_model.LinearRegression()   # 建立模型
+regr.fit(X, y)                           # 訓練
+y_pre = regr.predict(X)                  # 預測
+
+mse = mean_squared_error(y, y_pre)
+print(f"平均均方誤差: {mse:.4f}")
+
+plt.scatter(X, y, color='black')                 # 原始資料(黑點)
+plt.plot(X, y_pre, color='blue', linewidth=3)    # 擬合線(藍線)
+plt.xlabel("X"); plt.ylabel("y")
+plt.show()
+</pre></div>
+</section>
+
 <!-- ============ K-Means ============ -->
 <section id="km">
   <h2>⑦ K-Means 分群（非監督式）</h2>
@@ -343,6 +432,32 @@ footer{border-top:1px solid var(--line);margin-top:70px;padding:28px 0;color:var
       </div>
     </div>
   </div>
+</section>
+
+<!-- ============ 實作：K-Means ============ -->
+<section id="p-km">
+  <h2><span class="pbadge">實作</span>K-Means 分群（sklearn）<span class="tag">0327</span></h2>
+  <div class="plain"><b>對應理論：</b>非監督式的 K-Means。重點 API：<code>KMeans(n_clusters=k)</code> → <code>fit</code> → 用 <code>.labels_</code> 取得每個點被分到的群，當作散點圖顏色。</div>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import numpy as np
+
+def abc(x_min, x_max, y_min, y_max, num_samples, k):
+  x = np.random.uniform(x_min, x_max, num_samples)
+  y = np.random.uniform(y_min, y_max, num_samples)
+  data_arr = np.column_stack((x, y))
+
+  clf = KMeans(n_clusters=k)       # 設定群數 k
+  clf.fit(data_arr)                # 分群
+
+  plt.figure(figsize=(8, 6))
+  plt.scatter(data_arr[:, 0], data_arr[:, 1], s=100, c=clf.labels_)  # 顏色=群標籤
+  plt.title(f"K-Means Clustering (k={k})")
+  plt.show()
+
+abc(10, 15, 15, 20, 20, 3)         # 範圍、樣本數、群數
+</pre></div>
 </section>
 
 <!-- ============ RL ============ -->
@@ -419,186 +534,9 @@ footer{border-top:1px solid var(--line);margin-top:70px;padding:28px 0;color:var
   </div>
 </section>
 
-<!-- ============ NN ============ -->
-<section id="nn">
-  <h2>⑩ 神經網路實作觀念（MNIST / CIFAR）</h2>
-  <div class="grid g2">
-    <div class="mini"><h4>MNIST 手寫數字</h4>60000 訓練 / 10000 測試；<b>28×28 灰階</b>；0–9 共 10 類。輸入攤平成 <b>784</b> 個神經元，輸出 10 個。</div>
-    <div class="mini"><h4>CIFAR 物件</h4>50000 / 10000；<b>32×32 彩色(RGB 3 通道)</b>；10 類(飛機/車/貓/狗/鳥…)。參數約 MNIST 的 20 倍。</div>
-  </div>
-  <div class="card">
-    <h3>單顆神經元在做什麼？</h3>
-    <div class="f">Output = f( x₀·w₀ + x₁·w₁ + … + xₙ·wₙ + b )</div>
-    <p>輸入 × <b>權重 w</b> 全部加起來，再加 <b>偏差 b</b>，最後過一個<b>激發函數 f</b>。</p>
-    <div class="grid g3">
-      <div class="mini"><h4>ReLU</h4>隱藏層常用，負的變 0。</div>
-      <div class="mini"><h4>Softmax</h4>輸出層分類用，把輸出變成各類「機率」。</div>
-      <div class="mini"><h4>權重初始化</h4>用常態分佈(normal)亂數給初始值。</div>
-    </div>
-    <h3>資料預處理（兩個必記）</h3>
-    <div class="grid g2">
-      <div class="mini"><h4>正規化 Normalization</h4>像素 0–255 ÷255 → <b>0~1</b>。讓不同特徵能客觀比較變化量。</div>
-      <div class="mini"><h4>One-hot encoding</h4>數字 5 → <b>[0,0,0,0,0,1,0,0,0,0]</b>。每類一欄，用 0/1 表示，給輸出層用。</div>
-    </div>
-    <h3>流程（sklearn / keras）</h3>
-    <p><b>model.fit</b> 訓練 → <b>model.evaluate</b> 算準確率(accuracy) → <b>model.predict</b> 預測。<br>
-    GPU vs CPU：CIFAR 37 秒 vs 23 分鐘（平行運算差很多）。有趣現象：正確答案有時是「機率第二高」的那個。</p>
-  </div>
-
-  <div class="card">
-    <h3>順手記：SVM 與線性回歸（Lab）</h3>
-    <div class="grid g2">
-      <div class="mini"><h4>SVM 支援向量機</h4>找一條邊界讓兩類<b>邊距(margin)最大</b>。與 K-Means 差別：SVM 本來就知道分類(找最佳邊界)，K-Means 本來不知道(去找分群)。</div>
-      <div class="mini"><h4>線性回歸</h4>找<b>自變數</b>與<b>應變數</b>的關係(畫一條擬合線)。例：用克拉推估鑽石價格。</div>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================ 實作練習 -->
-<section id="p-py">
-  <h2>⑪ 實作練習：Python 基礎<span class="tag">0306</span></h2>
-  <div class="plain"><b>暖身：</b>第一堂課的 Python 基本功——用 <code>input()</code> 讀輸入、<code>int()</code> 轉型別、<code>if-elif-else</code> 判斷、巢狀 <code>for</code> 迴圈。</div>
-  <h3>簡易計算機（選 1/2/3/4 做加減乘除）</h3>
-  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
-choice = int(input())
-a = int(input())
-b = int(input())
-if choice == 1:
-  print(a, " + ", b, " = ", a + b)
-elif choice == 2:
-  print(a, " - ", b, " = ", a - b)
-elif choice == 3:
-  print(a, " * ", b, " = ", a * b)
-else:
-  print(a, " / ", b, " = ", a / b)
-</pre></div>
-  <h3>九九乘法表（雙層迴圈 + 對齊格式）</h3>
-  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
-a = int(input())
-b = int(input())
-for i in range(1, a+1):
-  for j in range(1, b+1):
-    print("{}*{} = {:&gt;2d}".format(i, j, i*j), end="\t")
-  print()
-</pre></div>
-  <p class="note"><code>{:&gt;2d}</code>＝靠右對齊、寬度 2 的整數；<code>end="\t"</code>＝用 Tab 取代換行讓同列並排。</p>
-</section>
-
-<section id="p-np">
-  <h2>⑫ 實作練習：NumPy 影像處理<span class="tag">0313</span></h2>
-  <div class="plain"><b>核心觀念：</b>一張圖片在電腦裡就是一個 <b>NumPy 陣列</b>（高 × 寬 × 色彩通道），所以用陣列切片就能裁切、縮放，用算術就能改變顏色。</div>
-  <div class="grid g3">
-    <div class="mini"><h4>讀取/顯示</h4><code>plt.imread</code> 讀檔、<code>plt.imshow</code> 顯示。</div>
-    <div class="mini"><h4>切片縮放</h4><code>img[0:h, 0:w]</code> 取左上角區域。</div>
-    <div class="mini"><h4>負片效果</h4><code>255 - img</code>：每個像素值反相。</div>
-  </div>
-  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
-import numpy as np
-import matplotlib.pylab as plt
-from google.colab import files
-
-uploaded = files.upload()          # 上傳圖片
-img = plt.imread("101.jpg")        # 讀成 NumPy 陣列
-plt.imshow(img)                    # 顯示原圖
-
-# 縮成原本的 1/n（取左上角區塊）
-n = int(input())
-plt.imshow(img[0:int(img.shape[0]/n), 0:int(img.shape[1]/n)])
-
-# 負片：用 255 減去每個像素值
-plt.imshow(255 - img[:, :, :])
-</pre></div>
-  <p class="note"><code>img.shape</code> = (高, 寬, 通道)；<code>shape[0]</code> 是高、<code>shape[1]</code> 是寬。</p>
-</section>
-
-<section id="p-lr">
-  <h2>⑬ 實作練習：線性回歸（sklearn）<span class="tag">0320</span></h2>
-  <div class="plain"><b>對應理論：</b>監督式學習的「線性回歸」。用 scikit-learn 三步驟：<b>建立模型 → fit 訓練 → predict 預測</b>，再用 <code>mean_squared_error</code> 看誤差、畫出擬合線。</div>
-  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn import datasets, linear_model
-from sklearn.metrics import mean_squared_error
-
-X = np.random.rand(10, 1)
-y = np.random.rand(10, 1)
-
-regr = linear_model.LinearRegression()   # 建立模型
-regr.fit(X, y)                           # 訓練
-y_pre = regr.predict(X)                  # 預測
-
-mse = mean_squared_error(y, y_pre)
-print(f"平均均方誤差: {mse:.4f}")
-
-plt.scatter(X, y, color='black')                 # 原始資料(黑點)
-plt.plot(X, y_pre, color='blue', linewidth=3)    # 擬合線(藍線)
-plt.xlabel("X"); plt.ylabel("y")
-plt.show()
-</pre></div>
-</section>
-
-<section id="p-km">
-  <h2>⑭ 實作練習：K-Means 分群（sklearn）<span class="tag">0327</span></h2>
-  <div class="plain"><b>對應理論：</b>非監督式的 K-Means。重點 API：<code>KMeans(n_clusters=k)</code> → <code>fit</code> → 用 <code>.labels_</code> 取得每個點被分到的群，當作散點圖顏色。</div>
-  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
-from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
-import numpy as np
-
-def abc(x_min, x_max, y_min, y_max, num_samples, k):
-  x = np.random.uniform(x_min, x_max, num_samples)
-  y = np.random.uniform(y_min, y_max, num_samples)
-  data_arr = np.column_stack((x, y))
-
-  clf = KMeans(n_clusters=k)       # 設定群數 k
-  clf.fit(data_arr)                # 分群
-
-  plt.figure(figsize=(8, 6))
-  plt.scatter(data_arr[:, 0], data_arr[:, 1], s=100, c=clf.labels_)  # 顏色=群標籤
-  plt.title(f"K-Means Clustering (k={k})")
-  plt.show()
-
-abc(10, 15, 15, 20, 20, 3)         # 範圍、樣本數、群數
-</pre></div>
-</section>
-
-<section id="p-mnist">
-  <h2>⑮ 實作練習：MNIST 手寫數字辨識（多層感知）<span class="tag">0410</span></h2>
-  <div class="plain"><b>第一個神經網路：</b>把 28×28 的圖攤平成 784 個輸入，經一層隱藏層(256, ReLU)，輸出 10 類(Softmax)。注意三個<b>預處理</b>：reshape、除以 255 正規化、One-hot。</div>
-  <div class="grid g4">
-    <div class="mini"><h4>reshape</h4>(60000,28,28) → (60000,784)</div>
-    <div class="mini"><h4>正規化</h4>像素 /255 → 0~1</div>
-    <div class="mini"><h4>One-hot</h4><code>to_categorical</code> 把標籤變 10 維</div>
-    <div class="mini"><h4>輸出層</h4>10 個神經元 + Softmax</div>
-  </div>
-  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
-from keras.datasets import mnist
-from keras.utils import to_categorical
-from keras.models import Sequential
-from keras.layers import Dense
-
-(x_train_image, y_train_label), (x_test_image, y_test_label) = mnist.load_data()
-
-# 預處理：攤平 + 正規化 + One-hot
-x_Train = x_train_image.reshape(60000, 784).astype('float32') / 255
-x_Test  = x_test_image.reshape(10000, 784).astype('float32') / 255
-y_TrainOneHot = to_categorical(y_train_label)
-y_TestOneHot  = to_categorical(y_test_label)
-
-# 建立模型：784 → 256(ReLU) → 10(Softmax)
-model = Sequential()
-model.add(Dense(units=256, input_dim=784, kernel_initializer='normal', activation='relu'))
-model.add(Dense(units=10,  kernel_initializer='normal', activation='softmax'))
-
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-model.fit(x_Train, y_TrainOneHot, validation_split=0.2, epochs=10, batch_size=200, verbose=0)
-scores = model.evaluate(x_Test, y_TestOneHot, batch_size=1)
-print('accuracy=', scores[1])
-</pre></div>
-</section>
-
+<!-- ============ 實作：CIFAR CNN ============ -->
 <section id="p-cnn">
-  <h2>⑯ 實作練習：CIFAR-10 物件辨識（CNN）<span class="tag">0424 · 0508</span></h2>
+  <h2><span class="pbadge">實作</span>CIFAR-10 物件辨識（CNN）<span class="tag">0424 · 0508</span></h2>
   <div class="plain"><b>對應理論：</b>卷積神經網路。彩色圖 (32,32,3) 不攤平，直接餵 <code>Conv2D</code>＋<code>MaxPooling2D</code> 抽特徵，最後 <code>Flatten</code> 接全連接層輸出 10 類。課堂做了 <b>1 / 2 / 3 個卷積層</b>的對照。</div>
   <div class="scroller"><table class="cmp-tbl">
     <tr><th>版本</th><th>卷積層數</th><th>結構</th><th>觀察</th></tr>
@@ -649,8 +587,80 @@ def show(x_img, y_label, pred, i):
   <p class="note">進階（0508）：用 <code>find_nth_highest_correct</code> 找出「正確答案其實是機率第 N 高」的資料——對應簡報說的「有時正解是第二高分」現象。</p>
 </section>
 
+<!-- ============ NN ============ -->
+<section id="nn">
+  <h2>⑩ 神經網路實作觀念（MNIST / CIFAR）</h2>
+  <div class="grid g2">
+    <div class="mini"><h4>MNIST 手寫數字</h4>60000 訓練 / 10000 測試；<b>28×28 灰階</b>；0–9 共 10 類。輸入攤平成 <b>784</b> 個神經元，輸出 10 個。</div>
+    <div class="mini"><h4>CIFAR 物件</h4>50000 / 10000；<b>32×32 彩色(RGB 3 通道)</b>；10 類(飛機/車/貓/狗/鳥…)。參數約 MNIST 的 20 倍。</div>
+  </div>
+  <div class="card">
+    <h3>單顆神經元在做什麼？</h3>
+    <div class="f">Output = f( x₀·w₀ + x₁·w₁ + … + xₙ·wₙ + b )</div>
+    <p>輸入 × <b>權重 w</b> 全部加起來，再加 <b>偏差 b</b>，最後過一個<b>激發函數 f</b>。</p>
+    <div class="grid g3">
+      <div class="mini"><h4>ReLU</h4>隱藏層常用，負的變 0。</div>
+      <div class="mini"><h4>Softmax</h4>輸出層分類用，把輸出變成各類「機率」。</div>
+      <div class="mini"><h4>權重初始化</h4>用常態分佈(normal)亂數給初始值。</div>
+    </div>
+    <h3>資料預處理（兩個必記）</h3>
+    <div class="grid g2">
+      <div class="mini"><h4>正規化 Normalization</h4>像素 0–255 ÷255 → <b>0~1</b>。讓不同特徵能客觀比較變化量。</div>
+      <div class="mini"><h4>One-hot encoding</h4>數字 5 → <b>[0,0,0,0,0,1,0,0,0,0]</b>。每類一欄，用 0/1 表示，給輸出層用。</div>
+    </div>
+    <h3>流程（sklearn / keras）</h3>
+    <p><b>model.fit</b> 訓練 → <b>model.evaluate</b> 算準確率(accuracy) → <b>model.predict</b> 預測。<br>
+    GPU vs CPU：CIFAR 37 秒 vs 23 分鐘（平行運算差很多）。有趣現象：正確答案有時是「機率第二高」的那個。</p>
+  </div>
+
+  <div class="card">
+    <h3>順手記：SVM 與線性回歸（Lab）</h3>
+    <div class="grid g2">
+      <div class="mini"><h4>SVM 支援向量機</h4>找一條邊界讓兩類<b>邊距(margin)最大</b>。與 K-Means 差別：SVM 本來就知道分類(找最佳邊界)，K-Means 本來不知道(去找分群)。</div>
+      <div class="mini"><h4>線性回歸</h4>找<b>自變數</b>與<b>應變數</b>的關係(畫一條擬合線)。例：用克拉推估鑽石價格。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 實作：MNIST ============ -->
+<section id="p-mnist">
+  <h2><span class="pbadge">實作</span>MNIST 手寫數字辨識（多層感知）<span class="tag">0410</span></h2>
+  <div class="plain"><b>第一個神經網路：</b>把 28×28 的圖攤平成 784 個輸入，經一層隱藏層(256, ReLU)，輸出 10 類(Softmax)。注意三個<b>預處理</b>：reshape、除以 255 正規化、One-hot。</div>
+  <div class="grid g4">
+    <div class="mini"><h4>reshape</h4>(60000,28,28) → (60000,784)</div>
+    <div class="mini"><h4>正規化</h4>像素 /255 → 0~1</div>
+    <div class="mini"><h4>One-hot</h4><code>to_categorical</code> 把標籤變 10 維</div>
+    <div class="mini"><h4>輸出層</h4>10 個神經元 + Softmax</div>
+  </div>
+  <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
+from keras.datasets import mnist
+from keras.utils import to_categorical
+from keras.models import Sequential
+from keras.layers import Dense
+
+(x_train_image, y_train_label), (x_test_image, y_test_label) = mnist.load_data()
+
+# 預處理：攤平 + 正規化 + One-hot
+x_Train = x_train_image.reshape(60000, 784).astype('float32') / 255
+x_Test  = x_test_image.reshape(10000, 784).astype('float32') / 255
+y_TrainOneHot = to_categorical(y_train_label)
+y_TestOneHot  = to_categorical(y_test_label)
+
+# 建立模型：784 → 256(ReLU) → 10(Softmax)
+model = Sequential()
+model.add(Dense(units=256, input_dim=784, kernel_initializer='normal', activation='relu'))
+model.add(Dense(units=10,  kernel_initializer='normal', activation='softmax'))
+
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.fit(x_Train, y_TrainOneHot, validation_split=0.2, epochs=10, batch_size=200, verbose=0)
+scores = model.evaluate(x_Test, y_TestOneHot, batch_size=1)
+print('accuracy=', scores[1])
+</pre></div>
+</section>
+
+<!-- ============ 實作：AutoKeras ============ -->
 <section id="p-ak">
-  <h2>⑰ 實作練習：AutoKeras 自動建模<span class="tag">0522</span></h2>
+  <h2><span class="pbadge">實作</span>AutoKeras 自動建模<span class="tag">0522</span></h2>
   <div class="plain"><b>懶人法：</b>不用自己設計網路，<code>ak.ImageClassifier</code> 會自動搜尋架構。<code>max_trials</code> = 嘗試幾種模型；介面一樣是 <code>fit / evaluate / predict</code>，最後可 <code>export_model()</code> 匯出實際的 Keras 模型。</div>
   <div class="codewrap"><button class="copybtn">複製</button><pre class="code">
 !pip3 install autokeras

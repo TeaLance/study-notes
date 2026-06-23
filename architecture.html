@@ -264,13 +264,6 @@ footer{border-top:1px solid var(--line);margin-top:80px;padding:30px 0;color:var
   </div>
   <ol>
     <li><a class="lnk" href="#top">總覽 Overview</a></li>
-    <li class="grp">CH3 · Arithmetic</li>
-    <li><a class="lnk" href="#c3-twoc">二補數與溢位</a></li>
-    <li><a class="lnk" href="#c3-alu">ALU 設計</a></li>
-    <li><a class="lnk" href="#c3-cla">Carry Lookahead</a></li>
-    <li><a class="lnk" href="#c3-mul">乘法器</a></li>
-    <li><a class="lnk" href="#c3-booth">Booth 演算法</a></li>
-    <li><a class="lnk" href="#c3-fp">除法與浮點數</a></li>
     <li class="grp">CH4 · The Processor</li>
     <li><a class="lnk" href="#c4-exec">指令執行步驟</a></li>
     <li><a class="lnk" href="#c4-datapath">單週期資料路徑</a></li>
@@ -282,6 +275,9 @@ footer{border-top:1px solid var(--line);margin-top:80px;padding:30px 0;color:var
     <li><a class="lnk" href="#c5-tech">記憶體技術</a></li>
     <li><a class="lnk" href="#c5-cache">Cache 與對映</a></li>
     <li><a class="lnk" href="#c5-vm">虛擬記憶體</a></li>
+    <li class="grp">EXAM · 考題詳解</li>
+    <li><a class="lnk" href="#exam-q2">Q2 · 三欄位 / total size</a></li>
+    <li><a class="lnk" href="#exam-q3">Q3 · DM vs 2-way</a></li>
   </ol>
 </nav>
 
@@ -292,232 +288,23 @@ footer{border-top:1px solid var(--line);margin-top:80px;padding:30px 0;color:var
 <header class="hero" id="top">
   <canvas id="trace-canvas" aria-hidden="true"></canvas>
   <div class="inner">
-    <span class="eyebrow">Patterson &amp; Hennessy · MIPS · Ch 3–5</span>
-    <h1>從一個位元到整台機器
-      <span class="sub">資料怎麼在 ALU、資料路徑與記憶體階層中流動</span>
+    <span class="eyebrow">Patterson &amp; Hennessy · MIPS · Ch 4–5</span>
+    <h1>從指令到記憶體階層
+      <span class="sub">資料怎麼在資料路徑、管線與記憶體階層中流動</span>
     </h1>
-    <p class="lead">這份教材把「計算機結構學」三大主題串成一條路徑：先讓 CPU 會算數（算術運算），
-    再把零件接成會跑指令的處理器（資料路徑與管線），最後解決「記憶體太慢」的問題（記憶體階層）。
-    每個觀念都配了可以動手操作的小工具——按一下，看資料怎麼動。</p>
+    <p class="lead">這份教材聚焦「計算機結構學」的兩大主題：先把零件接成會跑指令的處理器（資料路徑與管線），
+    再解決「記憶體太慢」的問題（記憶體階層、Cache 與虛擬記憶體）。
+    每個觀念都配了可以動手操作的小工具——按一下，看資料怎麼動。最後附上 Q2／Q3 考題詳解與互動計算器。</p>
     <p class="howto">使用方式 · 左側導覽跳章 → 讀重點 → 點開「▼ 詳解」看推導 → 操作 ◆ 互動工具驗證理解</p>
 
     <div class="cards">
-      <a class="card" href="#c3-twoc"><span class="n">CHAPTER 3</span><h3>Arithmetic 算術運算</h3><p>二補數、溢位、ALU、進位預看、乘法、Booth、IEEE-754 浮點數</p></a>
       <a class="card" href="#c4-exec"><span class="n">CHAPTER 4</span><h3>The Processor 處理器</h3><p>指令執行、單週期資料路徑、控制訊號、五級管線、危障與前送</p></a>
       <a class="card" href="#c5-locality"><span class="n">CHAPTER 5</span><h3>Memory 記憶體階層</h3><p>局部性、SRAM/DRAM/Disk、Cache 對映、寫入策略、虛擬記憶體</p></a>
+      <a class="card" href="#exam-q2"><span class="n">WORKED SOLUTIONS</span><h3>考題詳解 Q2 / Q3</h3><p>三欄位 Tag/Index/Offset、set 數量與 total cache size；DM vs 2-way 的 AMAT 比較，附互動計算器</p></a>
     </div>
   </div>
 </header>
 
-<!-- ============================================================ CH3 -->
-<section class="chapter" id="ch3">
-  <div class="ch-head">
-    <span class="eyebrow">Chapter 3</span>
-    <h2>Arithmetic for Computers <span class="en">算術運算</span></h2>
-    <p class="ch-intro">電腦的本質是「會算數的開關」。這一章從「數字怎麼用位元表示」開始，一路把加減、比較、乘除、
-    浮點數做成硬體。核心問題只有兩個：<b>怎麼算得對</b>（溢位、有號數）與 <b>怎麼算得快</b>（進位預看、Booth）。</p>
-  </div>
-
-  <!-- 3.1 two's complement -->
-  <div class="topic" id="c3-twoc">
-    <h3><span class="tag">3.1</span>有號數與二補數</h3>
-    <p>電腦用固定位元數存整數。<strong class="term">二補數 (two's complement)</strong> 是最常見的有號表示法：最高位是符號位，
-    負數 = 把正數每位元反相後 <code>+1</code>。它的好處是<b>加減法用同一套加法器就能做</b>，且 0 只有一種表示。</p>
-    <ul class="bul">
-      <li><b>範圍</b>：<code>n</code> 位元可表示 <code>−2<sup>n−1</sup></code> 到 <code>2<sup>n−1</sup>−1</code>（8 位元為 −128～127）。</li>
-      <li><b>符號延伸 (sign extension)</b>：把短數字放進長暫存器時，複製符號位填滿高位，數值不變（<code>lb</code>、<code>addi</code> 都會用到）。</li>
-      <li><b>取負</b>：<code>−x = ~x + 1</code>。這也是減法 <code>A − B = A + (~B) + 1</code> 的由來。</li>
-    </ul>
-    <details class="detail"><summary>詳解：為什麼「反相加一」就是負數？</summary>
-      <div class="detail-body">
-        <p>二補數的定義是把最高位的權重設成負的：對 8 位元，值 = <code>−b<sub>7</sub>·2<sup>7</sup> + b<sub>6</sub>·2<sup>6</sup> + … + b<sub>0</sub>·2<sup>0</sup></code>。</p>
-        <p>觀察 <code>x + ~x = 1111…1 = −1</code>（全部是 1 的二補數正好是 −1）。移項得 <code>~x = −1 − x</code>，所以 <code>~x + 1 = −x</code>。這就是取負的公式，完全不需要特別的「減法器」。</p>
-        <p>下面的工具用 8 位元二補數做加法，逐位顯示進位，並判斷是否溢位。</p>
-      </div>
-    </details>
-  </div>
-
-  <!-- 3.2 overflow -->
-  <div class="topic">
-    <h3><span class="tag">3.2</span>加減法與溢位偵測</h3>
-    <p>溢位 (<strong class="term">overflow</strong>) 指運算結果超出可表示範圍。重點：<b>只有同號相加、或異號相減</b>才可能溢位；
-    無號數則看最高位是否進位。硬體判斷法：<b>進入最高位的進位 ≠ 離開最高位的進位</b> 即溢位。</p>
-    <div class="tbl-wrap">
-    <table>
-      <thead><tr><th>運算</th><th>運算元 A,B 符號</th><th>結果符號異常時</th></tr></thead>
-      <tbody>
-        <tr><td class="mono">A + B</td><td>A≥0, B≥0</td><td>結果 &lt; 0 → 溢位</td></tr>
-        <tr><td class="mono">A + B</td><td>A&lt;0, B&lt;0</td><td>結果 ≥ 0 → 溢位</td></tr>
-        <tr><td class="mono">A − B</td><td>A≥0, B&lt;0</td><td>結果 &lt; 0 → 溢位</td></tr>
-        <tr><td class="mono">A − B</td><td>A&lt;0, B≥0</td><td>結果 ≥ 0 → 溢位</td></tr>
-      </tbody>
-    </table>
-    </div>
-    <div class="note"><b>MIPS：</b><code>add / sub / addi</code> 會偵測溢位並丟例外；<code>addu / subu / addiu</code> 不偵測。所以 C 編譯器多半用 <code>u</code> 版本。</div>
-
-    <div class="widget" id="w-add">
-      <p class="wtitle">互動：二補數加法 / 溢位視覺化</p>
-      <div class="controls">
-        <div class="fld"><label>A (−128～127)</label><input id="addA" type="number" value="100" min="-128" max="127"></div>
-        <div class="fld"><label>運算</label><select id="addOp"><option value="add">A + B</option><option value="sub">A − B</option></select></div>
-        <div class="fld"><label>B (−128～127)</label><input id="addB" type="number" value="50" min="-128" max="127"></div>
-        <button class="btn" id="addGo">計算</button>
-      </div>
-      <div id="addRows"></div>
-      <div class="readout" id="addOut"></div>
-    </div>
-  </div>
-
-  <!-- 3.3 ALU -->
-  <div class="topic" id="c3-alu">
-    <h3><span class="tag">3.3</span>從 1-bit ALU 到 32-bit ALU</h3>
-    <p><strong class="term">ALU (Arithmetic Logic Unit)</strong> 是 CPU 的計算核心。先做出 1 位元 ALU（含 AND、OR、全加器，再用
-    <strong class="term">多工器 (MUX)</strong> 選輸出），把 32 個串起來就是 32 位元 ALU。</p>
-    <ul class="bul">
-      <li><b>全加器 (full adder)</b>：3 進 2 出。<code>Sum = A⊕B⊕Cin</code>，<code>Cout = AB + (A⊕B)·Cin</code>。</li>
-      <li><b>減法</b>：把 B 反相（Binvert=1）並設最低位 <code>CarryIn=1</code>，等於做 <code>A + ~B + 1</code>。</li>
-      <li><b>slt (set less than)</b>：用 <code>A − B</code> 的符號位（最高位）回送到最低位的 <code>Less</code> 輸入，結果是 0 或 1。</li>
-      <li><b>相等比較 (beq)</b>：算 <code>A − B</code>，用 NOR 把所有結果位元 OR 起來；全 0 代表相等（<code>Zero</code> 訊號）。</li>
-    </ul>
-    <details class="detail"><summary>詳解：一個 1-bit ALU 裡有什麼？</summary>
-      <div class="detail-body">
-        <p>每個 1-bit ALU 接收 <code>a</code>、<code>b</code>、<code>CarryIn</code> 與一組控制線：</p>
-        <ul class="bul">
-          <li><code>Ainvert / Binvert</code>：決定是否反相輸入（做 NAND/NOR/減法）。</li>
-          <li><code>Operation (2 bit)</code>：MUX 選擇要輸出 AND(00)、OR(01)、Add(10) 還是 Less(11)。</li>
-        </ul>
-        <p>32 顆串成漣波，最低位的 <code>CarryIn</code> 接 Binvert（減法時 = 1），最高位的 ALU 多輸出一條 <code>Set</code> 給 slt，以及 <code>Overflow</code> 偵測。整顆 ALU 的控制線合稱 <code>ALU control (4 bit)</code>，由 Chapter 4 的控制單元產生。</p>
-      </div>
-    </details>
-  </div>
-
-  <!-- 3.4 CLA -->
-  <div class="topic" id="c3-cla">
-    <h3><span class="tag">3.4</span>進位預看加法器 Carry Lookahead</h3>
-    <p>把 32 顆 1-bit 加法器直接串起來叫 <strong class="term">漣波進位 (ripple-carry)</strong>：進位要一位一位傳，最長路徑是 <code>n</code> 倍閘延遲——太慢。
-    <strong class="term">Carry Lookahead Adder (CLA)</strong> 用「先算進位」的技巧把延遲壓到 <code>O(log n)</code> 等級。</p>
-    <div class="formula">
-      generate　<span class="hl">g<sub>i</sub></span> = a<sub>i</sub> · b<sub>i</sub>　　（兩個都是 1，一定產生進位）<br>
-      propagate <span class="hl">p<sub>i</sub></span> = a<sub>i</sub> + b<sub>i</sub>　（至少一個是 1，會把進位往上傳）<br>
-      <br>
-      c<sub>1</sub> = g<sub>0</sub> + p<sub>0</sub>·c<sub>0</sub><br>
-      c<sub>2</sub> = g<sub>1</sub> + p<sub>1</sub>g<sub>0</sub> + p<sub>1</sub>p<sub>0</sub>c<sub>0</sub><br>
-      c<sub>3</sub> = g<sub>2</sub> + p<sub>2</sub>g<sub>1</sub> + p<sub>2</sub>p<sub>1</sub>g<sub>0</sub> + p<sub>2</sub>p<sub>1</sub>p<sub>0</sub>c<sub>0</sub><br>
-      c<sub>4</sub> = …（每個進位都只用 g、p、c<sub>0</sub> 直接算，不必等前一級）
-    </div>
-    <ul class="bul">
-      <li><b>兩層架構</b>：4-bit CLA 為一塊，再用區塊級的 <code>G、P</code> 把多塊組成 16-bit / 32-bit，形成階層式預看。</li>
-      <li><b>區塊 generate</b>：<code>G = g<sub>3</sub> + p<sub>3</sub>g<sub>2</sub> + p<sub>3</sub>p<sub>2</sub>g<sub>1</sub> + p<sub>3</sub>p<sub>2</sub>p<sub>1</sub>g<sub>0</sub></code>，區塊 <code>P = p<sub>3</sub>p<sub>2</sub>p<sub>1</sub>p<sub>0</sub></code>。</li>
-      <li><b>取捨</b>：CLA 快但邏輯閘多、佈線複雜；實務常用混合（局部 CLA + 區塊漣波）。</li>
-    </ul>
-  </div>
-
-  <!-- 3.5 multiply -->
-  <div class="topic" id="c3-mul">
-    <h3><span class="tag">3.5</span>乘法器 Multiplication</h3>
-    <p>紙筆乘法 = 對每個乘數位元，決定要不要加上被乘數，然後左移。硬體把這流程做成「<b>加 → 位移 → 重複</b>」的迴圈。
-    課程演進三個版本，逐步把浪費的硬體砍掉：</p>
-    <div class="tbl-wrap">
-    <table>
-      <thead><tr><th>版本</th><th>做法</th><th>改良</th></tr></thead>
-      <tbody>
-        <tr><td>Ver 1</td><td>被乘數左移、64-bit ALU、Product 64-bit</td><td>直觀但一半 ALU 在算 0，浪費</td></tr>
-        <tr><td>Ver 2</td><td>被乘數不動，改成 <b>Product 右移</b>、32-bit ALU</td><td>ALU 縮一半</td></tr>
-        <tr><td>Ver 3</td><td><b>乘數塞進 Product 低位</b>，省掉乘數暫存器</td><td>對應 MIPS 的 <code>Hi/Lo</code></td></tr>
-      </tbody>
-    </table>
-    </div>
-    <p>每一輪：<b>① 測 Product 最低位</b>，是 1 就把被乘數加到 Product 高半部；<b>② Product 整體右移 1 位</b>。重複 <code>n</code> 次。</p>
-
-    <div class="widget" id="w-mul">
-      <p class="wtitle">互動：乘法逐步器（4-bit 無號 · Ver 3）</p>
-      <div class="controls">
-        <div class="fld"><label>被乘數 Multiplicand</label><input id="mulM" type="number" value="2" min="0" max="15"></div>
-        <div class="fld"><label>乘數 Multiplier</label><input id="mulQ" type="number" value="3" min="0" max="15"></div>
-        <button class="btn" id="mulInit">載入</button>
-        <button class="btn ghost" id="mulStep">下一步 ▶</button>
-        <button class="btn ghost" id="mulAuto">自動跑完</button>
-      </div>
-      <div class="tbl-wrap">
-      <table id="mulTbl">
-        <thead><tr><th>步驟</th><th>動作</th><th class="mono">Product (高 4 / 低 4)</th><th class="mono">Multiplicand</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      </div>
-      <div class="readout" id="mulOut">按「載入」開始。</div>
-    </div>
-  </div>
-
-  <!-- 3.6 booth -->
-  <div class="topic" id="c3-booth">
-    <h3><span class="tag">3.6</span>Booth 演算法（有號數乘法）</h3>
-    <p>無號乘法器遇到負數會出錯。<strong class="term">Booth's Algorithm</strong> 用同一套硬體處理有號數，技巧是把
-    「一長串連續的 1」用<b>一次減、一次加</b>取代多次加法（因為 <code>0111…1 = 1000…0 − 1</code>）。</p>
-    <div class="tbl-wrap">
-    <table>
-      <thead><tr><th class="mono">目前位</th><th class="mono">右邊位</th><th>含義</th><th>動作</th></tr></thead>
-      <tbody>
-        <tr><td class="mono">1</td><td class="mono">0</td><td>一串 1 的開頭</td><td>高半部 <b>減</b> 被乘數</td></tr>
-        <tr><td class="mono">1</td><td class="mono">1</td><td>一串 1 的中間</td><td>不動</td></tr>
-        <tr><td class="mono">0</td><td class="mono">1</td><td>一串 1 的結尾</td><td>高半部 <b>加</b> 被乘數</td></tr>
-        <tr><td class="mono">0</td><td class="mono">0</td><td>一串 0 的中間</td><td>不動</td></tr>
-      </tbody>
-    </table>
-    </div>
-    <p>每輪做完動作後，對 [高半部 | 乘數 | 額外位] 做<b>算術右移</b>（保留符號位）。下面用課本範例 <code>2 × 7</code> 逐步示範。</p>
-
-    <div class="widget" id="w-booth">
-      <p class="wtitle">互動：Booth 逐步器（4-bit 有號）</p>
-      <div class="controls">
-        <div class="fld"><label>被乘數 M (−7～7)</label><input id="boM" type="number" value="2" min="-7" max="7"></div>
-        <div class="fld"><label>乘數 Q (−8～7)</label><input id="boQ" type="number" value="7" min="-8" max="7"></div>
-        <button class="btn" id="boInit">載入</button>
-        <button class="btn ghost" id="boStep">下一步 ▶</button>
-        <button class="btn ghost" id="boAuto">自動跑完</button>
-      </div>
-      <div class="tbl-wrap">
-      <table id="boTbl">
-        <thead><tr><th>步驟</th><th class="mono">A</th><th class="mono">Q</th><th class="mono">Q-1</th><th>判斷 → 動作</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      </div>
-      <div class="readout" id="boOut">按「載入」開始。</div>
-    </div>
-  </div>
-
-  <!-- 3.7 fp -->
-  <div class="topic" id="c3-fp">
-    <h3><span class="tag">3.7</span>除法與 IEEE-754 浮點數</h3>
-    <p><b>除法</b>與乘法對稱：用「<b>減 → 位移 → 看餘數正負決定上商</b>」的迴圈（restoring / non-restoring division），
-    MIPS 的商與餘數一樣放在 <code>Hi/Lo</code>。</p>
-    <p><strong class="term">IEEE-754</strong> 是浮點數的標準格式：<code>(−1)<sup>S</sup> × 1.M × 2<sup>(E−bias)</sup></code>。
-    指數用 <b>bias</b> 表示（單精度 127、雙精度 1023），尾數隱含一個「1.」。</p>
-    <div class="tbl-wrap">
-    <table>
-      <thead><tr><th>格式</th><th>總位元</th><th>Sign</th><th>Exponent</th><th>Mantissa</th><th>bias</th></tr></thead>
-      <tbody>
-        <tr><td>單精度 float</td><td class="mono">32</td><td class="mono">1</td><td class="mono">8</td><td class="mono">23</td><td class="mono">127</td></tr>
-        <tr><td>雙精度 double</td><td class="mono">64</td><td class="mono">1</td><td class="mono">11</td><td class="mono">52</td><td class="mono">1023</td></tr>
-      </tbody>
-    </table>
-    </div>
-
-    <div class="widget" id="w-ieee">
-      <p class="wtitle">互動：IEEE-754 單精度拆解器</p>
-      <div class="controls">
-        <div class="fld"><label>十進位數值</label><input id="ieIn" type="number" value="-6.25" step="any"></div>
-        <button class="btn" id="ieGo">拆解</button>
-      </div>
-      <div class="iefields" id="ieBits"></div>
-      <div class="ielegend">
-        <span><i class="sw" style="background:var(--bad)"></i>Sign (1)</span>
-        <span><i class="sw" style="background:var(--accent-2)"></i>Exponent (8)</span>
-        <span><i class="sw" style="background:var(--accent)"></i>Mantissa (23)</span>
-      </div>
-      <div class="readout" id="ieOut" style="margin-top:12px"></div>
-    </div>
-  </div>
-</section>
 
 <!-- ============================================================ CH4 -->
 <section class="chapter" id="ch4">
@@ -743,8 +530,142 @@ footer{border-top:1px solid var(--line);margin-top:80px;padding:30px 0;color:var
   </div>
 </section>
 
+<!-- ============================================================ EXAM -->
+<section class="chapter" id="exam">
+  <div class="ch-head">
+    <span class="eyebrow">Worked Solutions</span>
+    <h2>考題詳解 <span class="en">Cache 定位與相聯度</span></h2>
+    <p class="ch-intro">把講義裡兩道核心題目單獨拆解。<b>Q2</b> 練「位址怎麼切成三欄位、快取有幾個 set、set-associative 的 total cache size 怎麼算」；
+    <b>Q3</b> 練「<strong class="term">直接對映 (DM)</strong> 與 <strong class="term">2-way</strong> 哪個比較快」。每題都先講方法，再用講義數據逐步算一次，最後附一個可以自己輸入參數驗證的計算器。</p>
+  </div>
+
+  <!-- Q2 -->
+  <div class="topic" id="exam-q2">
+    <h3><span class="tag">Q2</span>set 數量 · 三欄位 Tag / Index / Offset · total cache size</h3>
+    <div class="note"><b>Q2 題目：</b>給定 cache 容量、block 大小與相聯度，求 ① 快取的 set 數量、② 位址三欄位 <code>Tag / Index / Offset</code> 各幾位元、③ set-associative 下的 total cache size（含標記與 valid bit 的實際儲存量）。</div>
+
+    <h4 style="margin:18px 0 6px;font-size:1.02rem">解法：先記住三條關係</h4>
+    <p>一個位元組位址 (byte address) 被切成三段來定位資料：</p>
+    <div class="formula">［　<span class="hl">Tag</span>（比對是不是這個區塊）　｜　<span class="hl">Index</span>（選哪一個 set）　｜　<span class="hl">Offset</span>（block 內第幾個位元組）　］</div>
+    <div class="formula">
+      Offset 位元 = log<sub>2</sub>(<span class="hl">block 大小 bytes</span>)<br>
+      #blocks = cache 資料容量 ÷ block 大小　　#sets = <span class="hl">#blocks ÷ 相聯度 (associativity)</span><br>
+      Index 位元 = log<sub>2</sub>(<span class="hl">#sets</span>)　　Tag 位元 = 位址寬度 − Index − Offset
+    </div>
+    <ul class="bul">
+      <li><b>set 數量</b>是關鍵：DM（1-way）時 #sets = #blocks；2-way 時 #sets = #blocks ÷ 2；全相聯時 #sets = 1（Index = 0 位元）。</li>
+      <li>用哪個 set：<code>(block number) mod (#sets)</code>。相聯度越高、#sets 越少 → Index 變短、Tag 變長。</li>
+      <li><b>total cache size（實際儲存量）</b>不是只有資料，每一行還要存 Tag 與 1 個 valid bit：</li>
+    </ul>
+    <div class="formula">
+      total size = #sets × 相聯度 × (　<span class="hl">block 資料位元</span> + Tag 位元 + 1 (valid)　)
+    </div>
+
+    <h4 style="margin:18px 0 6px;font-size:1.02rem">講義例題 A（投影片 p.29 · Address Subdivision）</h4>
+    <p>32-bit 位址、1 word/block（= 4 bytes）、<b>direct mapped</b>、1024 個 block。求 tag 大小與 cache 總位元數。</p>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>步驟</th><th>計算</th><th class="mono">結果</th></tr></thead>
+      <tbody>
+        <tr><td>Offset 位元</td><td class="mono">log₂(4 bytes)</td><td class="mono">2</td></tr>
+        <tr><td>#sets（DM）</td><td class="mono">= #blocks = 1024</td><td class="mono">1024</td></tr>
+        <tr><td>Index 位元</td><td class="mono">log₂(1024)</td><td class="mono">10</td></tr>
+        <tr><td><b>Tag 位元</b></td><td class="mono">32 − 10 − 2</td><td class="mono"><b>20</b></td></tr>
+        <tr><td>每行位元</td><td class="mono">data 32 + tag 20 + valid 1</td><td class="mono">53</td></tr>
+        <tr><td><b>總位元數</b></td><td class="mono">1024 × 53</td><td class="mono"><b>54,272 bits</b></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p style="font-size:.86rem;color:var(--muted)">→ 資料本體只有 1024×32 = 32,768 bits（4 KB），但加上 Tag 與 valid bit 後實際要存 <b>54,272 bits</b>，這就是標記額外負擔 (overhead)。</p>
+
+    <h4 style="margin:18px 0 6px;font-size:1.02rem">講義例題 B（投影片 p.37 · Mapping an Address）</h4>
+    <p>cache 有 64 個 block、block 大小 16 bytes。問位元組位址 <b>1200</b> 對映到哪個 block？三欄位各幾位元（32-bit 位址）？</p>
+    <div class="formula">
+      block address = ⌊1200 ÷ 16⌋ = <span class="hl">75</span>　→　block number = 75 mod 64 = <span class="hl">11</span><br>
+      Offset = log₂16 = <span class="hl">4</span>　Index = log₂64 = <span class="hl">6</span>　Tag = 32 − 6 − 4 = <span class="hl">22</span>
+    </div>
+
+    <div class="widget" id="w-q2">
+      <p class="wtitle">互動：Cache 幾何計算器（set 數量 · 三欄位 · total size）</p>
+      <p style="font-size:.84rem;color:var(--muted);margin:0 0 12px">輸入參數，立即算出 #blocks、#sets、Offset/Index/Tag 位元、位址欄位拆解與 total cache size。容量與 block 需為 2 的次方。</p>
+      <div class="controls">
+        <div class="fld"><label>cache 資料容量 (bytes)</label><input id="q2Size" type="number" value="4096" min="1" style="width:130px"></div>
+        <div class="fld"><label>block 大小 (bytes)</label><input id="q2Block" type="number" value="4" min="1" style="width:110px"></div>
+        <div class="fld"><label>相聯度 associativity</label>
+          <select id="q2Assoc">
+            <option value="1">1-way（直接對映 DM）</option>
+            <option value="2">2-way set associative</option>
+            <option value="4">4-way set associative</option>
+            <option value="8">8-way set associative</option>
+            <option value="0">全相聯 fully associative</option>
+          </select></div>
+        <div class="fld"><label>位址寬度 (bits)</label><input id="q2Addr" type="number" value="32" min="1" style="width:90px"></div>
+        <button class="btn" id="q2Go">計算</button>
+      </div>
+      <div class="controls" style="margin-bottom:6px">
+        <button class="btn ghost" id="q2PreA">載入例題 A（1024-block DM）</button>
+        <button class="btn ghost" id="q2PreB">載入例題 B（64×16B）</button>
+      </div>
+      <div id="q2Viz" style="margin:10px 0"></div>
+      <div class="readout" id="q2Out"></div>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="topic" id="exam-q3">
+    <h3><span class="tag">Q3</span>DM 與 2-way 的速度比較（依講義）</h3>
+    <div class="note"><b>Q3 題目：</b>同樣容量下，比較<strong class="term">直接對映 (DM, 1-way)</strong> 與 <strong class="term">2-way set associative</strong> 哪個比較快。</div>
+
+    <h4 style="margin:18px 0 6px;font-size:1.02rem">解法：速度要看 AMAT，不能只看 miss rate（依講義）</h4>
+    <ul class="bul">
+      <li><b>2:1 Cache Rule（講義 p.56）</b>：容量 N 的 DM，其 miss rate ≈ 容量 N/2 的 2-way。也就是「2-way 用一半容量就追平 DM 的失誤率」——<b>2-way 失誤率較低</b>。</li>
+      <li><b>但「執行時間才是最終標準」</b>：提高相聯度要先選 set 再用多工器從多個 way 挑出資料，<b>hit time / 時脈週期 (CCT) 會變長</b>。</li>
+      <li><b>Hill [1988]</b>：2-way 相對 1-way 的 hit time，外部 cache <code>+10%</code>、內部 cache <code>+2%</code>。</li>
+    </ul>
+    <div class="formula">
+      AMAT（平均存取時間）= <span class="hl">hit time</span> + miss rate × miss penalty<br>
+      DM：　 AMAT = hit<sub>base</sub> + miss<sub>DM</sub> × penalty<br>
+      2-way：AMAT = hit<sub>base</sub> × <span class="hl">CCT 係數(≈1.10)</span> + miss<sub>2-way</sub> × penalty
+    </div>
+    <p>所以結論是<b>取捨</b>：2-way 把 miss rate 壓低、卻把 hit time 拉高。<b>哪個快要把兩者代進 AMAT 才知道。</b></p>
+
+    <h4 style="margin:18px 0 6px;font-size:1.02rem">講義 AMAT 對照表（p.57，cycles，CCT：2-way ×1.10）</h4>
+    <p style="font-size:.86rem;color:var(--muted)"><span class="tag-hit">綠</span>＝該容量下 2-way 較快；<span class="tag-miss">紅</span>＝2-way 反而較慢（hit time 變長的代價蓋過 miss rate 的改善）。</p>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Cache Size</th><th class="mono">1-way (DM)</th><th class="mono">2-way</th><th>誰較快</th></tr></thead>
+      <tbody>
+        <tr><td>1 KB</td><td class="mono">2.33</td><td class="mono">2.15</td><td><span class="tag-hit">2-way</span></td></tr>
+        <tr><td>2 KB</td><td class="mono">1.98</td><td class="mono">1.86</td><td><span class="tag-hit">2-way</span></td></tr>
+        <tr><td>4 KB</td><td class="mono">1.72</td><td class="mono">1.67</td><td><span class="tag-hit">2-way</span></td></tr>
+        <tr><td>8 KB</td><td class="mono">1.46</td><td class="mono">1.48</td><td><span class="tag-miss">DM</span></td></tr>
+        <tr><td>16 KB</td><td class="mono">1.29</td><td class="mono">1.32</td><td><span class="tag-miss">DM</span></td></tr>
+        <tr><td>32 KB</td><td class="mono">1.20</td><td class="mono">1.24</td><td><span class="tag-miss">DM</span></td></tr>
+        <tr><td>64 KB</td><td class="mono">1.14</td><td class="mono">1.20</td><td><span class="tag-miss">DM</span></td></tr>
+        <tr><td>128 KB</td><td class="mono">1.10</td><td class="mono">1.17</td><td><span class="tag-miss">DM</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="note"><b>結論：</b>cache 容量小時（≤ 4 KB），衝突失誤多，2-way 降 miss rate 的好處大於 hit time 的代價 → <b>2-way 較快</b>；容量大到一定程度（≥ 8 KB）後 miss rate 本來就低，2-way 多出來的 hit time 反而拖累整體 → <b>DM 較快</b>。這正是講義說「相聯度提高，AMAT 不一定改善」的意思。</div>
+
+    <div class="widget" id="w-q3">
+      <p class="wtitle">互動：AMAT 比較器（DM vs 2-way）</p>
+      <p style="font-size:.84rem;color:var(--muted);margin:0 0 12px">輸入兩者的 miss rate、miss penalty 與 2-way 的 CCT 係數，看誰的 AMAT 比較小。試著把 miss penalty 調小 → 會看到 2-way 反而變慢。</p>
+      <div class="controls">
+        <div class="fld"><label>DM miss rate (%)</label><input id="q3Dm" type="number" value="10.3" step="0.1" min="0" style="width:110px"></div>
+        <div class="fld"><label>2-way miss rate (%)</label><input id="q3Sa" type="number" value="8.6" step="0.1" min="0" style="width:120px"></div>
+        <div class="fld"><label>miss penalty (cycles)</label><input id="q3Pen" type="number" value="20" step="1" min="0" style="width:120px"></div>
+        <div class="fld"><label>基準 hit time (cycles)</label><input id="q3Hit" type="number" value="1" step="0.1" min="0" style="width:120px"></div>
+        <div class="fld"><label>2-way CCT 係數</label><input id="q3Cct" type="number" value="1.10" step="0.01" min="1" style="width:110px"></div>
+        <button class="btn" id="q3Go">比較</button>
+      </div>
+      <div class="readout" id="q3Out"></div>
+    </div>
+  </div>
+</section>
+
 <footer>
-  <div>計算機結構學 · 互動式學習教材　|　內容依 Patterson &amp; Hennessy《Computer Organization and Design》(MIPS) Ch 3–5 整理</div>
+  <div>計算機結構學 · 互動式學習教材　|　內容依 Patterson &amp; Hennessy《Computer Organization and Design》(MIPS) Ch 4–5 整理</div>
   <div style="margin-top:6px;color:var(--accent-dim)">離線可用 · 所有互動以瀏覽器本機運算</div>
 </footer>
 
@@ -821,139 +742,6 @@ spyTargets.forEach(t=>spy.observe(t));
     raf=requestAnimationFrame(draw);
   }
   window.addEventListener('resize',size); size(); draw();
-})();
-
-/* ============ 3.2 adder / overflow ============ */
-(function(){
-  const A=$('#addA'),B=$('#addB'),OP=$('#addOp'),rows=$('#addRows'),out=$('#addOut');
-  function bitRow(label,val,cls){
-    const bits=bin(val,8).split('');
-    return `<div class="bitrow"><span class="lbl-w">${label}</span>`+
-      bits.map(b=>`<div class="bit ${b==='1'?'one':'zero'} ${cls||''}">${b}</div>`).join('')+`</div>`;
-  }
-  function go(){
-    let a=Math.max(-128,Math.min(127,parseInt(A.value)||0));
-    let b=Math.max(-128,Math.min(127,parseInt(B.value)||0));
-    const sub=OP.value==='sub';
-    const ua=a&0xFF, ub0=b&0xFF, ub=sub?((~ub0)&0xFF):ub0;
-    const cin=sub?1:0;
-    // ripple add ua+ub+cin
-    let carry=cin, carries=[], sum=0;
-    for(let i=0;i<8;i++){const ai=(ua>>i)&1, bi=(ub>>i)&1; const s=ai+bi+carry; carries[i]=carry; sum|=(s&1)<<i; carry=s>>1;}
-    const cout=carry, cinMSB=carries[7];
-    const ov=(cinMSB^cout)===1;
-    const res=toSigned(sum&0xFF,8);
-    rows.innerHTML =
-      bitRow('A = '+a, ua) +
-      bitRow((sub?'~B+1 (= −B)':'B = '+b), ub) +
-      // carry display row
-      `<div class="bitrow"><span class="lbl-w">carry</span>`+
-        [...Array(8)].map((_,i)=>{const ci=carries[7-i];return `<div class="bit ${ci?'carry':'zero'}">${ci}</div>`;}).join('')+`</div>`+
-      bitRow('Sum = '+res, sum, 'flip');
-    out.innerHTML = `<span class="k">運算：</span><span class="v">${a} ${sub?'−':'+'} ${b} = ${sub? a-b : a+b}</span><br>`+
-      `<span class="k">8-bit 結果：</span><span class="v">${res}</span>　`+
-      `<span class="k">進入 MSB 進位 = ${cinMSB}，離開 MSB 進位 = ${cout}</span><br>`+
-      `<span class="k">判斷：</span> ${ov?'<span class="tag-miss">OVERFLOW 溢位</span> 兩進位不同，結果超出 −128~127':'<span class="tag-hit">正常</span> 進位一致，結果可信'}`;
-  }
-  $('#addGo').addEventListener('click',go); [A,B].forEach(e=>e.addEventListener('keydown',ev=>{if(ev.key==='Enter')go();})); OP.addEventListener('change',go); go();
-})();
-
-/* ============ 3.5 multiply stepper (4-bit, ver3) ============ */
-(function(){
-  const M=$('#mulM'),Q=$('#mulQ'),tbody=$('#mulTbl tbody'),out=$('#mulOut');
-  let st=null;
-  function fmtProd(p){return bin(p>>4,4)+' '+bin(p&0xF,4);}
-  function load(){
-    let m=Math.max(0,Math.min(15,parseInt(M.value)||0));
-    let q=Math.max(0,Math.min(15,parseInt(Q.value)||0));
-    st={m,prod:q&0xF,i:0,done:false};
-    tbody.innerHTML='';
-    addRow('初始','prod ← multiplier 放低 4 位',st.prod,m);
-    out.innerHTML=`<span class="k">計算 ${m} × ${q}。每輪：測 prod 最低位 → (若為1)高半加 M → 整體右移。</span>`;
-  }
-  function addRow(step,act,prod,m){
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${step}</td><td style="font-size:.82rem">${act}</td><td class="mono">${fmtProd(prod)}</td><td class="mono">${bin(m,4)}</td>`;
-    tbody.appendChild(tr);
-  }
-  function step(){
-    if(!st){load();return;}
-    if(st.done) return;
-    const i=st.i; const lowbit=st.prod&1;
-    let act;
-    if(lowbit){ const hi=((st.prod>>4)+st.m); const combined=((hi<<4)|(st.prod&0xF));
-      st.prod=combined>>1; act=`第${i+1}輪：最低位=1 → 高半 +M，再右移`; }
-    else { st.prod=st.prod>>1; act=`第${i+1}輪：最低位=0 → 直接右移`; }
-    st.i++; addRow(i+1,act,st.prod,st.m);
-    if(st.i>=4){st.done=true; const res=st.prod&0xFF;
-      out.innerHTML=`<span class="tag-hit">完成</span> 4 輪結束，乘積 = <b>${res}</b>（二進位 ${bin(res,8)}）`;}
-  }
-  $('#mulInit').addEventListener('click',load);
-  $('#mulStep').addEventListener('click',step);
-  $('#mulAuto').addEventListener('click',()=>{if(!st||st.done)load(); while(!st.done)step();});
-  load();
-})();
-
-/* ============ 3.6 booth stepper (4-bit signed) ============ */
-(function(){
-  const Mi=$('#boM'),Qi=$('#boQ'),tbody=$('#boTbl tbody'),out=$('#boOut');
-  let st=null;
-  function load(){
-    let m=Math.max(-7,Math.min(7,parseInt(Mi.value)||0));
-    let q=Math.max(-8,Math.min(7,parseInt(Qi.value)||0));
-    st={mPat:m&0xF,mVal:m,A:0,Q:q&0xF,Qm1:0,i:0,done:false,qVal:q};
-    tbody.innerHTML='';
-    row('初始','—');
-    out.innerHTML=`<span class="k">計算 ${m} × ${q}。看 (Q0,Q-1)：10減、01加、其餘不動 → 算術右移。</span>`;
-  }
-  function row(step,act){
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${step}</td><td class="mono">${bin(st.A,4)}</td><td class="mono">${bin(st.Q,4)}</td><td class="mono">${st.Qm1}</td><td style="font-size:.8rem">${act}</td>`;
-    tbody.appendChild(tr);
-  }
-  function step(){
-    if(!st){load();return;}
-    if(st.done) return;
-    const i=st.i, q0=st.Q&1, code=''+q0+st.Qm1; let act;
-    if(code==='10'){st.A=(st.A-st.mPat)&0xF; act='(1,0) 開頭 → A = A − M';}
-    else if(code==='01'){st.A=(st.A+st.mPat)&0xF; act='(0,1) 結尾 → A = A + M';}
-    else {act=`(${q0},${st.Qm1}) → 不動`;}
-    // arithmetic shift right [A,Q,Qm1]
-    const sign=(st.A>>3)&1;
-    const newQm1=st.Q&1;
-    const newQ=((st.Q>>1)|((st.A&1)<<3))&0xF;
-    const newA=((st.A>>1)|(sign<<3))&0xF;
-    st.A=newA; st.Q=newQ; st.Qm1=newQm1; st.i++;
-    row(i+1, act+' ，算術右移');
-    if(st.i>=4){st.done=true; const prod=toSigned(((st.A<<4)|st.Q)&0xFF,8);
-      out.innerHTML=`<span class="tag-hit">完成</span> 乘積 = <b>${prod}</b>（驗證 ${st.mVal} × ${st.qVal} = ${st.mVal*st.qVal}）`;}
-  }
-  $('#boInit').addEventListener('click',load);
-  $('#boStep').addEventListener('click',step);
-  $('#boAuto').addEventListener('click',()=>{if(!st||st.done)load(); while(!st.done)step();});
-  load();
-})();
-
-/* ============ 3.7 IEEE-754 ============ */
-(function(){
-  const inp=$('#ieIn'),bitsEl=$('#ieBits'),out=$('#ieOut');
-  function go(){
-    const v=parseFloat(inp.value); if(isNaN(v)){out.textContent='請輸入數字';return;}
-    const buf=new ArrayBuffer(4); new DataView(buf).setFloat32(0,v);
-    const u=new DataView(buf).getUint32(0);
-    const str=bin(u,32);
-    bitsEl.innerHTML = str.split('').map((b,i)=>{
-      let cls='ie-m'; if(i===0)cls='ie-s'; else if(i<=8)cls='ie-e';
-      return `<div class="iebit ${cls}">${b}</div>`;
-    }).join('');
-    const s=(u>>>31)&1, e=(u>>>23)&0xFF, m=u&0x7FFFFF;
-    const exp=e-127;
-    out.innerHTML=`<span class="k">Sign S =</span> <span class="v">${s}</span> → ${s?'負':'正'}<br>`+
-      `<span class="k">Exponent =</span> <span class="v">${e}</span> (二進位 ${bin(e,8)})，去 bias：${e} − 127 = <b>${exp}</b><br>`+
-      `<span class="k">Mantissa =</span> <span class="v">${bin(m,23)}</span><br>`+
-      `<span class="k">數值 =</span> (−1)<sup>${s}</sup> × 1.${bin(m,23)} × 2<sup>${exp}</sup> = <b>${v}</b>`;
-  }
-  $('#ieGo').addEventListener('click',go); inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();}); go();
 })();
 
 /* ============ 4.2 datapath ============ */
@@ -1063,6 +851,81 @@ spyTargets.forEach(t=>spy.observe(t));
       `<span class="k">命中率 hit ratio =</span> <b>${(hits/n*100).toFixed(1)}%</b>` : '請輸入有效位址。';
   }
   $('#caGo').addEventListener('click',go); seqEl.addEventListener('keydown',e=>{if(e.key==='Enter')go();}); go();
+})();
+
+/* ============ 5.4 Q2 cache geometry calc ============ */
+(function(){
+  const sizeEl=$('#q2Size'),blockEl=$('#q2Block'),assocEl=$('#q2Assoc'),addrEl=$('#q2Addr');
+  const viz=$('#q2Viz'),out=$('#q2Out');
+  const isPow2=n=>n>0 && (n&(n-1))===0;
+  const log2=n=>Math.round(Math.log2(n));
+  const fmtBytes=b=>{ if(b%1048576===0)return (b/1048576)+' MB'; if(b%1024===0)return (b/1024)+' KB'; return b+' B'; };
+  function seg(label,bits,bg,bd){
+    return `<div style="flex:${Math.max(bits,0.8)} 1 0;min-width:58px;text-align:center;padding:8px 6px;`+
+      `background:${bg};border:1px solid ${bd};border-radius:6px">`+
+      `<div style="font-family:var(--mono);font-size:.7rem;color:var(--faint)">${label}</div>`+
+      `<div style="font-family:var(--mono);font-weight:700">${bits} bit</div></div>`;
+  }
+  function go(){
+    const size=parseInt(sizeEl.value)||0, block=parseInt(blockEl.value)||0;
+    const assocSel=parseInt(assocEl.value), addr=parseInt(addrEl.value)||0;
+    viz.innerHTML='';
+    if(!isPow2(size)||!isPow2(block)){ out.innerHTML='<span class="tag-miss">輸入錯誤</span> cache 容量與 block 大小都必須是 2 的次方。'; return; }
+    if(block>size){ out.innerHTML='<span class="tag-miss">輸入錯誤</span> block 不可大於 cache 容量。'; return; }
+    if(addr<1||addr>64){ out.innerHTML='<span class="tag-miss">輸入錯誤</span> 位址寬度請填 1~64。'; return; }
+    const nblocks=size/block;
+    const fully=(assocSel===0);
+    const assoc=fully?nblocks:assocSel;
+    if(nblocks%assoc!==0){ out.innerHTML='<span class="tag-miss">輸入錯誤</span> #blocks ('+nblocks+') 無法被相聯度 '+assoc+' 整除。'; return; }
+    const nsets=nblocks/assoc;
+    const offset=log2(block), index=log2(nsets), tag=addr-offset-index;
+    if(tag<0){ out.innerHTML='<span class="tag-miss">輸入錯誤</span> 位址寬度太小，Tag 會變成負數。'; return; }
+    const dataBits=block*8, rowBits=dataBits+tag+1, total=nsets*assoc*rowBits;
+    // field viz
+    viz.innerHTML='<div style="display:flex;gap:6px;align-items:stretch">'+
+      seg('Tag',tag,'rgba(69,200,192,.14)','var(--accent-dim)')+
+      (index>0?seg('Index',index,'rgba(240,168,48,.16)','var(--accent-2-dim)'):'')+
+      seg('Offset',offset,'var(--ground-2)','var(--line)')+'</div>';
+    const assocLabel=fully?('全相聯 ('+assoc+'-way)'):(assoc+'-way');
+    out.innerHTML=
+      `<span class="k">#blocks =</span> <span class="v">${nblocks}</span>　`+
+      `<span class="k">#sets =</span> <b>${nsets}</b>　<span class="k">每 set</span> <span class="v">${assoc}</span> <span class="k">行（${assocLabel}）</span><br>`+
+      `<span class="k">位址 ${addr} bit =</span> Tag <b>${tag}</b> ｜ Index <b>${index}</b> ｜ Offset <b>${offset}</b><br>`+
+      `<span class="k">每行 =</span> data ${dataBits} + tag ${tag} + valid 1 = <span class="v">${rowBits}</span> bit<br>`+
+      `<span class="k">total cache size =</span> ${nsets} × ${assoc} × ${rowBits} = <b>${total.toLocaleString()} bit</b> `+
+      `<span class="k">(= ${(total/8).toLocaleString()} bytes)</span><br>`+
+      `<span class="k">純資料本體 =</span> ${nblocks} × ${dataBits} = ${(nblocks*dataBits).toLocaleString()} bit (${fmtBytes(nblocks*block)})`;
+  }
+  $('#q2Go').addEventListener('click',go);
+  [sizeEl,blockEl,addrEl].forEach(e=>e.addEventListener('keydown',ev=>{if(ev.key==='Enter')go();}));
+  assocEl.addEventListener('change',go);
+  $('#q2PreA').addEventListener('click',()=>{ sizeEl.value=4096; blockEl.value=4; assocEl.value='1'; addrEl.value=32; go(); });
+  $('#q2PreB').addEventListener('click',()=>{ sizeEl.value=1024; blockEl.value=16; assocEl.value='1'; addrEl.value=32; go(); });
+  go();
+})();
+
+/* ============ 5.4 Q3 AMAT compare (DM vs 2-way) ============ */
+(function(){
+  const dmEl=$('#q3Dm'),saEl=$('#q3Sa'),penEl=$('#q3Pen'),hitEl=$('#q3Hit'),cctEl=$('#q3Cct'),out=$('#q3Out');
+  function go(){
+    const dm=(parseFloat(dmEl.value)||0)/100, sa=(parseFloat(saEl.value)||0)/100;
+    const pen=parseFloat(penEl.value)||0, hit=parseFloat(hitEl.value)||0, cct=parseFloat(cctEl.value)||1;
+    const amatDm=hit + dm*pen;
+    const amatSa=hit*cct + sa*pen;
+    const dmWin=amatDm<=amatSa;
+    const diff=Math.abs(amatDm-amatSa);
+    const dmTag=dmWin?'tag-hit':'tag-miss', saTag=dmWin?'tag-miss':'tag-hit';
+    out.innerHTML=
+      `<span class="k">DM (1-way)：</span>AMAT = ${hit} + ${(dm*100).toFixed(1)}%×${pen} = <span class="${dmTag}">${amatDm.toFixed(3)}</span> cycles<br>`+
+      `<span class="k">2-way：</span>AMAT = ${hit}×${cct} + ${(sa*100).toFixed(1)}%×${pen} = <span class="${saTag}">${amatSa.toFixed(3)}</span> cycles<br>`+
+      `<span class="k">結論：</span><b>${dmWin?'DM (直接對映) 較快':'2-way 較快'}</b>，AMAT 少 ${diff.toFixed(3)} cycles。`+
+      (dmWin
+        ? `　<span class="k">— hit time 增加 ${((cct-1)*100).toFixed(0)}% 的代價蓋過 miss rate 的改善。</span>`
+        : `　<span class="k">— 2-way 降低 miss rate 的好處大於 hit time 變長的代價。</span>`);
+  }
+  $('#q3Go').addEventListener('click',go);
+  [dmEl,saEl,penEl,hitEl,cctEl].forEach(e=>e.addEventListener('keydown',ev=>{if(ev.key==='Enter')go();}));
+  go();
 })();
 </script>
 </body>
